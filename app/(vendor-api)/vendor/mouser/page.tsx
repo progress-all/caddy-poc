@@ -7,8 +7,8 @@ import { JsonViewer } from "@/app/_components/vendor-api/json-viewer";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function MouserPage() {
-  const [keywordResult, setKeywordResult] = useState<unknown>(null);
-  const [partNumberResult, setPartNumberResult] = useState<unknown>(null);
+  const [keywordResult, setKeywordResult] = useState<unknown | null>(null);
+  const [partNumberResult, setPartNumberResult] = useState<unknown | null>(null);
   const [keywordLoading, setKeywordLoading] = useState(false);
   const [partNumberLoading, setPartNumberLoading] = useState(false);
   const [keywordError, setKeywordError] = useState<string | null>(null);
@@ -128,7 +128,7 @@ export default function MouserPage() {
             </Card>
           )}
 
-          {keywordResult && (
+          {keywordResult != null && (
             <JsonViewer data={keywordResult} title="Keyword Search Result" />
           )}
         </TabsContent>
@@ -163,7 +163,7 @@ export default function MouserPage() {
             </Card>
           )}
 
-          {partNumberResult && (
+          {partNumberResult != null && (
             <JsonViewer
               data={partNumberResult}
               title="Part Number Search Result"

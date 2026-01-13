@@ -92,23 +92,26 @@ function VisualViewer({ data, level = 0 }: VisualViewerProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((item, index) => (
-                <TableRow key={index}>
-                  {keys.map((key) => (
-                    <TableCell key={key}>
-                      {isObject(item[key]) || isArray(item[key]) ? (
-                        <div className="pl-4">
-                          <VisualViewer data={item[key]} level={level + 1} />
-                        </div>
-                      ) : (
-                        <span className="text-sm">
-                          {formatValue(item[key])}
-                        </span>
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+              {data.map((item, index) => {
+                if (!isObject(item)) return null;
+                return (
+                  <TableRow key={index}>
+                    {keys.map((key) => (
+                      <TableCell key={key}>
+                        {isObject(item[key]) || isArray(item[key]) ? (
+                          <div className="pl-4">
+                            <VisualViewer data={item[key]} level={level + 1} />
+                          </div>
+                        ) : (
+                          <span className="text-sm">
+                            {formatValue(item[key])}
+                          </span>
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
