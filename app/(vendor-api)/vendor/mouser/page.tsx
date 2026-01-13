@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiForm } from "@/app/_components/vendor-api/api-form";
-import { JsonViewer } from "@/app/_components/vendor-api/json-viewer";
+import { ResultViewer } from "@/app/_components/vendor-api/json-viewer";
+import { MouserCustomView } from "@/app/_components/vendor-api/mouser-custom-view";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function MouserPage() {
@@ -92,82 +93,97 @@ export default function MouserPage() {
         </TabsList>
 
         <TabsContent value="keyword" className="space-y-4">
-          <ApiForm
-            endpoint="Search by Keyword"
-            fields={[
-              {
-                name: "keyword",
-                label: "Keyword",
-                placeholder: "例: LM358",
-                required: true,
-              },
-              {
-                name: "records",
-                label: "Records (optional)",
-                type: "number",
-                placeholder: "10",
-              },
-              {
-                name: "startingRecord",
-                label: "Starting Record (optional)",
-                type: "number",
-                placeholder: "0",
-              },
-            ]}
-            onSubmit={handleKeywordSubmit}
-            isLoading={keywordLoading}
-          />
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <ApiForm
+                endpoint="Search by Keyword"
+                fields={[
+                  {
+                    name: "keyword",
+                    label: "Keyword",
+                    placeholder: "例: LM358",
+                    required: true,
+                    defaultValue: "LM358",
+                  },
+                  {
+                    name: "records",
+                    label: "Records (optional)",
+                    type: "number",
+                    placeholder: "10",
+                    defaultValue: 10,
+                  },
+                  {
+                    name: "startingRecord",
+                    label: "Starting Record (optional)",
+                    type: "number",
+                    placeholder: "0",
+                    defaultValue: 0,
+                  },
+                ]}
+                onSubmit={handleKeywordSubmit}
+                isLoading={keywordLoading}
+              />
 
-          {keywordError && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-destructive">
+              {keywordError && (
+                <div className="text-sm text-destructive pt-2">
                   <strong>Error:</strong> {keywordError}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
           {keywordResult != null && (
-            <JsonViewer data={keywordResult} title="Keyword Search Result" />
+            <div className="h-[calc(100vh-280px)] min-h-[500px]">
+              <ResultViewer
+                data={keywordResult}
+                title="Keyword Search Result"
+                customView={<MouserCustomView data={keywordResult} />}
+                className="h-full"
+              />
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="partnumber" className="space-y-4">
-          <ApiForm
-            endpoint="Search by Part Number"
-            fields={[
-              {
-                name: "partNumber",
-                label: "Part Number",
-                placeholder: "例: 595-LM358N",
-                required: true,
-              },
-              {
-                name: "partSearchOptions",
-                label: "Part Search Options (optional)",
-                placeholder: "",
-              },
-            ]}
-            onSubmit={handlePartNumberSubmit}
-            isLoading={partNumberLoading}
-          />
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <ApiForm
+                endpoint="Search by Part Number"
+                fields={[
+                  {
+                    name: "partNumber",
+                    label: "Part Number",
+                    placeholder: "例: 595-LM358BAIPWR",
+                    required: true,
+                    defaultValue: "595-LM358BAIPWR",
+                  },
+                  {
+                    name: "partSearchOptions",
+                    label: "Part Search Options (optional)",
+                    placeholder: "",
+                  },
+                ]}
+                onSubmit={handlePartNumberSubmit}
+                isLoading={partNumberLoading}
+              />
 
-          {partNumberError && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-destructive">
+              {partNumberError && (
+                <div className="text-sm text-destructive pt-2">
                   <strong>Error:</strong> {partNumberError}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
 
           {partNumberResult != null && (
-            <JsonViewer
-              data={partNumberResult}
-              title="Part Number Search Result"
-            />
+            <div className="h-[calc(100vh-280px)] min-h-[500px]">
+              <ResultViewer
+                data={partNumberResult}
+                title="Part Number Search Result"
+                customView={<MouserCustomView data={partNumberResult} />}
+                className="h-full"
+              />
+            </div>
           )}
         </TabsContent>
       </Tabs>

@@ -1,9 +1,11 @@
 /**
  * Mouser API Client
- * Mouser API v2へのリクエストを処理するクライアント
+ * Mouser APIへのリクエストを処理するクライアント
  */
 
-const MOUSER_API_BASE_URL = "https://api.mouser.com/api/v2";
+// APIバージョンは環境変数で上書き可能、デフォルトはv2
+const MOUSER_API_VERSION = process.env.MOUSER_API_VERSION || "2";
+const MOUSER_API_BASE_URL = `https://api.mouser.com/api/v${MOUSER_API_VERSION}`;
 
 export interface MouserSearchByKeywordRequest {
   keyword: string;
@@ -87,9 +89,9 @@ export class MouserApiClient {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        SearchByPartNumberRequest: {
+        SearchByPartRequest: {
           mouserPartNumber: request.partNumber,
-          partSearchOptions: request.partSearchOptions,
+          partSearchOptions: request.partSearchOptions ?? "",
         },
       }),
     });

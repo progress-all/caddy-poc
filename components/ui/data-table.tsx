@@ -1,0 +1,156 @@
+"use client"
+
+import * as React from "react"
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { DataTablePagination } from "./data-table-pagination"
+import { DataTableToolbar } from "./data-table-toolbar"
+import { DataTableViewOptions } from "./data-table-view-options"
+
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+  searchKey?: string
+  enableSorting?: boolean
+  enableFiltering?: boolean
+  enablePagination?: boolean
+  enableColumnVisibility?: boolean
+  pageSize?: number
+  globalFilterFn?: (row: any, columnId: string, filterValue: any) => boolean
+}
+
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  searchKey,
+  enableSorting = true,
+  enableFiltering = true,
+  enablePagination = true,
+  enableColumnVisibility = true,
+  pageSize = 10,
+  globalFilterFn,
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize,
+  })
+  const [globalFilter, setGlobalFilter] = React.useState("")
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: enablePagination
+      ? getPaginationRowModel()
+      : undefined,
+    onSortingChange: enableSorting ? setSorting : undefined,
+    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
+    onColumnFiltersChange: enableFiltering ? setColumnFilters : undefined,
+    getFilteredRowModel: enableFiltering ? getFilteredRowModel() : undefined,
+    onColumnVisibilityChange: enableColumnVisibility
+      ? setColumnVisibility
+      : undefined,
+    onRowSelectionChange: setRowSelection,
+    onPaginationChange: enablePagination ? setPagination : undefined,
+    onGlobalFilterChange: !searchKey ? setGlobalFilter : undefined,
+    globalFilterFn: globalFilterFn,
+    state: {
+      sorting: enableSorting ? sorting : undefined,
+      columnFilters: enableFiltering ? columnFilters : undefined,
+      columnVisibility: enableColumnVisibility ? columnVisibility : undefined,
+      rowSelection,
+      pagination: enablePagination ? pagination : undefined,
+      globalFilter: !searchKey ? globalFilter : undefined,
+    },
+  })
+
+  return (
+    <div className="space-y-2">
+      {(enableFiltering || enableColumnVisibility) && (
+        <div className="flex items-center justify-between py-1">
+          {enableFiltering && searchKey && (
+            <DataTableToolbar table={table} searchKey={searchKey} />
+          )}
+          {enableColumnVisibility && <DataTableViewOptions table={table} />}
+        </div>
+      )}
+      <div className="rounded-md border overflow-auto max-h-[calc(100vh-300px)]">
+        <Table>
+          <TableHeader className="sticky top-0 bg-background z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} className="whitespace-nowrap">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  結果が見つかりませんでした。
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      {enablePagination && <DataTablePagination table={table} />}
+    </div>
+  )
+}

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ApiFormField {
   name: string;
@@ -12,6 +11,7 @@ interface ApiFormField {
   type?: "text" | "number";
   placeholder?: string;
   required?: boolean;
+  defaultValue?: string | number;
 }
 
 interface ApiFormProps {
@@ -27,7 +27,15 @@ export function ApiForm({
   onSubmit,
   isLoading = false,
 }: ApiFormProps) {
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  // デフォルト値で初期化
+  const initialFormData: Record<string, string> = {};
+  fields.forEach((field) => {
+    if (field.defaultValue !== undefined) {
+      initialFormData[field.name] = String(field.defaultValue);
+    }
+  });
+
+  const [formData, setFormData] = useState<Record<string, string>>(initialFormData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,39 +52,38 @@ export function ApiForm({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{endpoint}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {fields.map((field) => (
-            <div key={field.name} className="space-y-2">
-              <Label htmlFor={field.name}>
-                {field.label}
-                {field.required && <span className="text-destructive"> *</span>}
-              </Label>
-              <Input
-                id={field.name}
-                type={field.type ?? "text"}
-                placeholder={field.placeholder}
-                value={formData[field.name] ?? ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    [field.name]: e.target.value,
-                  }))
-                }
-                required={field.required}
-                disabled={isLoading}
-              />
-            </div>
-          ))}
-          <Button type="submit" disabled={isLoading}>
+    <div className="space-y-2">
+      <h3 className="text-sm font-semibold text-foreground">{endpoint}</h3>
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
+        {fields.map((field) => (
+          <div key={field.name} className="flex flex-col gap-1 min-w-[120px] flex-1 max-w-[300px]">
+            <Label htmlFor={field.name} className="text-xs text-muted-foreground">
+              {field.label}
+              {field.required && <span className="text-destructive"> *</span>}
+            </Label>
+            <Input
+              id={field.name}
+              type={field.type ?? "text"}
+              placeholder={field.placeholder}
+              value={formData[field.name] ?? ""}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  [field.name]: e.target.value,
+                }))
+              }
+              required={field.required}
+              disabled={isLoading}
+              className="h-9"
+            />
+          </div>
+        ))}
+        <div className="flex items-end">
+          <Button type="submit" disabled={isLoading} className="h-9">
             {isLoading ? "実行中..." : "実行"}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      </form>
+    </div>
   );
 }
