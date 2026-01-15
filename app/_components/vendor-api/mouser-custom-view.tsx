@@ -24,17 +24,41 @@ function KeyValueTags({ items, formatFn }: KeyValueTagsProps) {
   const displayItems = items.slice(0, 2);
   const hasMore = items.length > 2;
 
+  // 全アイテムのフルテキストを生成（ツールチップ用）
+  const fullText = items
+    .map((item, i) => {
+      if (formatFn) {
+        return `${i + 1}. ${formatFn(item)}`;
+      } else if (typeof item === "object" && item !== null) {
+        const entries = Object.entries(item);
+        return `${i + 1}. ${entries.map(([k, v]) => `${k}: ${v ?? "-"}`).join(", ")}`;
+      }
+      return `${i + 1}. ${String(item)}`;
+    })
+    .join("\n");
+
   return (
-    <div className="flex flex-wrap gap-0.5 max-h-[2.5rem] overflow-hidden">
+    <div
+      className="flex flex-nowrap gap-1 max-h-[2.5rem] overflow-x-auto scrollbar-thin cursor-help"
+      title={fullText}
+    >
       {displayItems.map((item, index) => {
         let displayText: string;
-        
+        let fullItemText: string;
+
         if (formatFn) {
-          displayText = formatFn(item);
+          fullItemText = formatFn(item);
+          displayText = fullItemText;
         } else if (typeof item === "object" && item !== null) {
           // オブジェクトの場合は主要なkey:valueペアを抽出
           const entries = Object.entries(item);
           if (entries.length > 0) {
+            fullItemText = entries
+              .map(([key, value]) => {
+                const val = value === null || value === undefined ? "-" : String(value);
+                return `${key}: ${val}`;
+              })
+              .join(", ");
             displayText = entries
               .slice(0, 2) // 最大2つのペアまで表示
               .map(([key, value]) => {
@@ -43,25 +67,36 @@ function KeyValueTags({ items, formatFn }: KeyValueTagsProps) {
               })
               .join(", ");
           } else {
-            displayText = JSON.stringify(item);
+            fullItemText = JSON.stringify(item);
+            displayText = fullItemText;
           }
         } else {
-          displayText = String(item);
+          fullItemText = String(item);
+          displayText = fullItemText;
         }
 
-        // テキストを短縮
+        // テキストを短縮（表示用のみ）
         if (displayText.length > 30) {
           displayText = displayText.substring(0, 30) + "...";
         }
 
         return (
-          <Badge key={index} variant="secondary" className="text-[10px] px-1 py-0 h-4 leading-4">
+          <Badge
+            key={index}
+            variant="secondary"
+            className="text-[10px] px-1 py-0 h-4 leading-4 whitespace-nowrap flex-shrink-0"
+            title={fullItemText}
+          >
             {displayText}
           </Badge>
         );
       })}
       {hasMore && (
-        <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 leading-4">
+        <Badge
+          variant="secondary"
+          className="text-[10px] px-1 py-0 h-4 leading-4 whitespace-nowrap flex-shrink-0"
+          title={`他 ${items.length - 2} 件\n\n${fullText}`}
+        >
           +{items.length - 2}
         </Badge>
       )}
