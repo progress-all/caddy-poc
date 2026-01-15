@@ -1,81 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback } from "react";
+import useSWRMutation from "swr/mutation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiForm } from "@/app/_components/vendor-api/api-form";
 import { ResultViewer } from "@/app/_components/vendor-api/json-viewer";
 import { MouserCustomView } from "@/app/_components/vendor-api/mouser-custom-view";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  searchByKeyword,
+  searchByPartNumber,
+} from "@/app/_lib/vendor/mouser/api";
+import type {
+  KeywordSearchInput,
+  PartNumberSearchInput,
+} from "@/app/_lib/vendor/mouser/types";
 
 export default function MouserPage() {
-  const [keywordResult, setKeywordResult] = useState<unknown | null>(null);
-  const [partNumberResult, setPartNumberResult] = useState<unknown | null>(null);
-  const [keywordLoading, setKeywordLoading] = useState(false);
-  const [partNumberLoading, setPartNumberLoading] = useState(false);
-  const [keywordError, setKeywordError] = useState<string | null>(null);
-  const [partNumberError, setPartNumberError] = useState<string | null>(null);
+  const {
+    data: keywordResult,
+    error: keywordError,
+    isMutating: keywordLoading,
+    trigger: executeKeywordSearch,
+    reset: resetKeyword,
+  } = useSWRMutation(
+    ["mouser", "keyword"],
+    (_key, { arg }: { arg: KeywordSearchInput }) => searchByKeyword(arg)
+  );
 
-  const handleKeywordSubmit = async (data: Record<string, string | number>) => {
-    setKeywordLoading(true);
-    setKeywordError(null);
-    setKeywordResult(null);
+  const {
+    data: partNumberResult,
+    error: partNumberError,
+    isMutating: partNumberLoading,
+    trigger: executePartNumberSearch,
+    reset: resetPartNumber,
+  } = useSWRMutation(
+    ["mouser", "partnumber"],
+    (_key, { arg }: { arg: PartNumberSearchInput }) => searchByPartNumber(arg)
+  );
 
-    try {
-      const response = await fetch("/api/vendor/mouser/search/keyword", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+  const handleKeywordSubmit = useCallback(
+    async (data: Record<string, string | number>) => {
+      resetKeyword();
+      await executeKeywordSearch(data as unknown as KeywordSearchInput);
+    },
+    [executeKeywordSearch, resetKeyword]
+  );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to search");
-      }
-
-      const result = await response.json();
-      setKeywordResult(result);
-    } catch (error) {
-      setKeywordError(
-        error instanceof Error ? error.message : "Unknown error occurred"
-      );
-    } finally {
-      setKeywordLoading(false);
-    }
-  };
-
-  const handlePartNumberSubmit = async (
-    data: Record<string, string | number>
-  ) => {
-    setPartNumberLoading(true);
-    setPartNumberError(null);
-    setPartNumberResult(null);
-
-    try {
-      const response = await fetch("/api/vendor/mouser/search/partnumber", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to search");
-      }
-
-      const result = await response.json();
-      setPartNumberResult(result);
-    } catch (error) {
-      setPartNumberError(
-        error instanceof Error ? error.message : "Unknown error occurred"
-      );
-    } finally {
-      setPartNumberLoading(false);
-    }
-  };
+  const handlePartNumberSubmit = useCallback(
+    async (data: Record<string, string | number>) => {
+      resetPartNumber();
+      await executePartNumberSearch(data as unknown as PartNumberSearchInput);
+    },
+    [executePartNumberSearch, resetPartNumber]
+  );
 
   return (
     <div className="space-y-6">
@@ -124,15 +102,15 @@ export default function MouserPage() {
                 isLoading={keywordLoading}
               />
 
-              {keywordError && (
+              {keywordError ? (
                 <div className="text-sm text-destructive pt-2">
-                  <strong>Error:</strong> {keywordError}
+                  <strong>Error:</strong> {keywordError.message}
                 </div>
-              )}
+              ) : null}
             </CardContent>
           </Card>
 
-          {keywordResult != null && (
+          {keywordResult != null ? (
             <div className="h-[calc(100vh-280px)] min-h-[500px]">
               <ResultViewer
                 data={keywordResult}
@@ -141,7 +119,7 @@ export default function MouserPage() {
                 className="h-full"
               />
             </div>
-          )}
+          ) : null}
         </TabsContent>
 
         <TabsContent value="partnumber" className="space-y-4">
@@ -167,15 +145,15 @@ export default function MouserPage() {
                 isLoading={partNumberLoading}
               />
 
-              {partNumberError && (
+              {partNumberError ? (
                 <div className="text-sm text-destructive pt-2">
-                  <strong>Error:</strong> {partNumberError}
+                  <strong>Error:</strong> {partNumberError.message}
                 </div>
-              )}
+              ) : null}
             </CardContent>
           </Card>
 
-          {partNumberResult != null && (
+          {partNumberResult != null ? (
             <div className="h-[calc(100vh-280px)] min-h-[500px]">
               <ResultViewer
                 data={partNumberResult}
@@ -184,7 +162,7 @@ export default function MouserPage() {
                 className="h-full"
               />
             </div>
-          )}
+          ) : null}
         </TabsContent>
       </Tabs>
     </div>

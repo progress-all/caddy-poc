@@ -1,12 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Copy, Check, Table2, ListTree, Braces } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { VisualViewerWrapper } from "./visual-viewer";
 import { cn } from "@/app/_lib/utils";
+
+const VisualViewerWrapper = dynamic(
+  () => import("./visual-viewer").then((mod) => mod.VisualViewerWrapper),
+  { loading: () => <div className="p-4 text-muted-foreground">Loading...</div> }
+);
 
 interface ResultViewerProps {
   data: unknown;
@@ -41,17 +46,17 @@ export function ResultViewer({
     <Card className={cn("flex flex-col", className)}>
       <CardContent className="p-4 pt-4 flex flex-col flex-1 min-h-0">
         <div className="space-y-4 flex flex-col flex-1 min-h-0">
-          {title && (
+          {title ? (
             <h3 className="text-sm font-semibold text-foreground flex-shrink-0">{title}</h3>
-          )}
+          ) : null}
           <div className="flex flex-col flex-1 min-h-0">
             <Tabs defaultValue={defaultTab} className="w-full flex flex-col flex-1 min-h-0">
               <TabsList className="flex-shrink-0">
-                {customView && (
+                {customView ? (
                   <TabsTrigger value="custom" aria-label="カスタムビュー">
                     <Table2 className="h-4 w-4" />
                   </TabsTrigger>
-                )}
+                ) : null}
                 <TabsTrigger value="visualJson" aria-label="ビジュアルJSON">
                   <ListTree className="h-4 w-4" />
                 </TabsTrigger>
@@ -59,13 +64,13 @@ export function ResultViewer({
                   <Braces className="h-4 w-4" />
                 </TabsTrigger>
               </TabsList>
-              {customView && (
+              {customView ? (
                 <TabsContent value="custom" className="mt-4 flex-1 min-h-0">
                   <div className="h-full flex flex-col">
                     {customView}
                   </div>
                 </TabsContent>
-              )}
+              ) : null}
               <TabsContent value="visualJson" className="mt-4 flex-1 min-h-0">
                 <div className="h-full overflow-auto border rounded-md p-4">
                   <VisualViewerWrapper data={data} />

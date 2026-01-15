@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,7 @@ interface ApiFormProps {
   isLoading?: boolean;
 }
 
-export function ApiForm({
+export const ApiForm = memo(function ApiForm({
   endpoint,
   fields,
   onSubmit,
@@ -86,4 +86,4 @@ export function ApiForm({
       </form>
     </div>
   );
-}
+});

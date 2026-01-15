@@ -1,7 +1,20 @@
 /**
- * Mouser API レスポンス型定義
+ * Mouser API 型定義
  */
 
+// 入力型
+export interface KeywordSearchInput {
+  keyword: string;
+  records?: number;
+  startingRecord?: number;
+}
+
+export interface PartNumberSearchInput {
+  partNumber: string;
+  partSearchOptions?: string;
+}
+
+// レスポンス型
 export interface MouserPart {
   MouserPartNumber?: string;
   ManufacturerPartNumber?: string;
