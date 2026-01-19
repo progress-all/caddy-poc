@@ -64,11 +64,10 @@ export const ApiForm = memo(function ApiForm({
   };
 
   return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-foreground">{endpoint}</h3>
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
+    <div className="space-y-1">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2">
         {fields.map((field) => (
-          <div key={field.name} className="flex flex-col gap-1 min-w-[120px] flex-1 max-w-[300px]">
+          <div key={field.name} className="flex flex-col gap-0.5 min-w-[120px] flex-1 max-w-[300px]">
             <Label htmlFor={field.name} className="text-xs text-muted-foreground">
               {field.label}
               {field.required && <span className="text-destructive"> *</span>}

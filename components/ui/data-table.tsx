@@ -91,16 +91,16 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col h-full min-h-0 space-y-2">
       {(enableFiltering || enableColumnVisibility) && (
-        <div className="flex items-center justify-between py-1">
+        <div className="flex items-center justify-between py-1 flex-shrink-0">
           {enableFiltering && searchKey && (
             <DataTableToolbar table={table} searchKey={searchKey} />
           )}
           {enableColumnVisibility && <DataTableViewOptions table={table} />}
         </div>
       )}
-      <div className="rounded-md border overflow-auto max-h-[calc(100vh-300px)]">
+      <div className="rounded-md border overflow-auto flex-1 min-h-0">
         <Table>
           <TableHeader className="sticky top-0 bg-background z-10">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -150,7 +150,11 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      {enablePagination && <DataTablePagination table={table} />}
+      {enablePagination && (
+        <div className="flex-shrink-0">
+          <DataTablePagination table={table} />
+        </div>
+      )}
     </div>
   )
 }
