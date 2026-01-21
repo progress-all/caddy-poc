@@ -80,7 +80,7 @@ export function ScoreDetailSection({
     const maxParam = candidateProduct.Parameters?.find(
       (p) => p.ParameterText === "Voltage - Supply Span (Max)"
     );
-    if (minParam && maxParam) {
+    if (minParam?.ValueText && maxParam?.ValueText) {
       const min = parseFloat(minParam.ValueText.replace(/[^0-9.]/g, ""));
       const max = parseFloat(maxParam.ValueText.replace(/[^0-9.]/g, ""));
       return [min, max];

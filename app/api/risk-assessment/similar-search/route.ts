@@ -186,7 +186,7 @@ function convertRecommendedToCandidate(
     quantityAvailable: Number(rec.QuantityAvailable) || 0,
     productUrl: rec.ProductUrl,
     photoUrl: rec.PrimaryPhoto,
-    unitPrice: rec.UnitPrice,
+    unitPrice: rec.UnitPrice != null ? String(rec.UnitPrice) : undefined,
     sources: [],
   };
 }
