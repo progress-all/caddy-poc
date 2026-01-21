@@ -2,330 +2,120 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RiskIndicator } from "../_components/risk-indicator";
-import { PartCard } from "../_components/part-card";
-import type { DigiKeyProduct } from "@/app/_lib/vendor/digikey/types";
 import type {
   NormalizedCompliance,
   RiskLevel,
-  DifficultyLevel,
-  ScoreBreakdownDetail,
+  CandidateInfo,
+  CandidateSource,
+  SimilarSearchResponse,
 } from "../_lib/types";
+import { searchSimilarProducts } from "../_lib/api";
 
-// モック: 類似品候補データ（DigiKeyProduct形式に変換）
-interface MockAlternative {
-  product: DigiKeyProduct;
-  compliance: NormalizedCompliance;
-  riskLevel: RiskLevel;
-  similarityScore: number;
-  difficultyLevel: DifficultyLevel;
-  scoreBreakdown: {
-    specMatch: number;
-    complianceSafety: number;
-    availability: number;
-  };
-  scoreBreakdownDetail: ScoreBreakdownDetail;
+/**
+ * ソースに対応するバッジの表示設定（日本語）
+ */
+const sourceLabels: Record<CandidateSource, { label: string; variant: "default" | "secondary" | "outline" }> = {
+  substitutions: { label: "代替品", variant: "default" },
+  recommended: { label: "推奨品", variant: "secondary" },
+  custom: { label: "カスタム検索", variant: "outline" },
+};
+
+/**
+ * 候補カード（ソースラベル付き、画像対応）
+ */
+function CandidateCard({ candidate }: { candidate: CandidateInfo }) {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-3 flex flex-col space-y-2">
+        {/* ヘッダー: 画像 + MPN + メーカー + ソースバッジ */}
+        <div className="flex items-start gap-2">
+          {/* 画像（あれば表示） */}
+          {candidate.photoUrl ? (
+            <img
+              src={candidate.photoUrl}
+              alt={candidate.manufacturerProductNumber}
+              className="w-12 h-12 object-contain border rounded flex-shrink-0"
+            />
+          ) : (
+            <div className="w-12 h-12 bg-muted rounded flex-shrink-0 flex items-center justify-center">
+              <span className="text-xs text-muted-foreground">No img</span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap gap-1 mb-1">
+              {candidate.sources.map((source) => (
+                <Badge key={source} variant={sourceLabels[source].variant} className="text-xs">
+                  {sourceLabels[source].label}
+                </Badge>
+              ))}
+              {candidate.substituteType && (
+                <Badge variant="outline" className="text-xs text-muted-foreground">
+                  {candidate.substituteType}
+                </Badge>
+              )}
+            </div>
+            <div className="font-medium text-sm truncate">
+              {candidate.manufacturerProductNumber}
+            </div>
+            <div className="text-xs text-muted-foreground truncate">
+              {candidate.manufacturerName}
+            </div>
+          </div>
+        </div>
+
+        {/* 説明 */}
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {candidate.description}
+        </p>
+
+        {/* 在庫・価格 */}
+        <div className="flex justify-between items-center text-xs pt-1 border-t">
+          <span className="text-muted-foreground">
+            在庫: {candidate.quantityAvailable.toLocaleString()}
+          </span>
+          {candidate.unitPrice && (
+            <span className="font-medium">{candidate.unitPrice}</span>
+          )}
+        </div>
+
+        {/* DigiKeyリンク */}
+        {candidate.productUrl && (
+          <a
+            href={candidate.productUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-600 hover:underline"
+          >
+            DigiKeyで見る →
+          </a>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
-// モックデータをDigiKeyProduct形式に変換するヘルパー
-function createMockProduct(
-  mpn: string,
-  manufacturer: string,
-  description: string,
-  rohsStatus: string,
-  reachStatus: string,
-  quantityAvailable: number
-): DigiKeyProduct {
-  return {
-    ManufacturerProductNumber: mpn,
-    Manufacturer: { Id: 0, Name: manufacturer },
-    Description: {
-      ProductDescription: description,
-      DetailedDescription: description,
-    },
-    Classifications: {
-      RohsStatus: rohsStatus,
-      ReachStatus: reachStatus,
-      MoistureSensitivityLevel: "",
-      ExportControlClassNumber: "",
-      HtsusCode: "",
-    },
-    Category: { CategoryId: 0, ParentId: 0, Name: "", ChildCategories: [] },
-    Parameters: [],
-    QuantityAvailable: quantityAvailable,
-    ProductStatus: { Id: 0, Status: "Active" },
-    EndOfLife: false,
-    Discontinued: false,
-    UnitPrice: null,
-    ProductVariations: [],
-    ProductUrl: "",
-    DatasheetUrl: null,
-    PhotoUrl: null,
-  };
+/**
+ * ソースサマリの表示（日本語、エラー表示なし）
+ */
+function SourceSummary({ summary }: { summary: SimilarSearchResponse["sourceSummary"] }) {
+  // カスタムは未実装なので非表示
+  return (
+    <div className="flex flex-wrap gap-4 text-sm">
+      <div className="flex items-center gap-2">
+        <Badge variant="default" className="text-xs">代替品</Badge>
+        <span>{summary.substitutions.count}件</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Badge variant="secondary" className="text-xs">推奨品</Badge>
+        <span>{summary.recommended.count}件</span>
+      </div>
+    </div>
+  );
 }
-
-// モック対象部品（実際にはURLパラメータから作成）
-function createTargetProduct(
-  mpn: string,
-  manufacturer: string
-): DigiKeyProduct {
-  return {
-    ManufacturerProductNumber: mpn,
-    Manufacturer: { Id: 0, Name: manufacturer },
-    Description: {
-      ProductDescription: "IC OPAMP GP 2 CIRCUIT 8TSSOP",
-      DetailedDescription: "IC OPAMP GP 2 CIRCUIT 8TSSOP",
-    },
-    Classifications: {
-      RohsStatus: "ROHS3 Compliant",
-      ReachStatus: "REACH Unaffected",
-      MoistureSensitivityLevel: "",
-      ExportControlClassNumber: "",
-      HtsusCode: "",
-    },
-    Category: { CategoryId: 0, ParentId: 0, Name: "", ChildCategories: [] },
-    Parameters: [
-      {
-        ParameterId: 1,
-        ParameterText: "Package / Case",
-        ParameterType: "Package",
-        ValueId: "1",
-        ValueText: "8-TSSOP (0.173\", 4.40mm Width)",
-      },
-      {
-        ParameterId: 2,
-        ParameterText: "Voltage - Supply Span (Min)",
-        ParameterType: "Voltage",
-        ValueId: "2",
-        ValueText: "3 V",
-      },
-      {
-        ParameterId: 3,
-        ParameterText: "Voltage - Supply Span (Max)",
-        ParameterType: "Voltage",
-        ValueId: "3",
-        ValueText: "36 V",
-      },
-      {
-        ParameterId: 4,
-        ParameterText: "Mounting Type",
-        ParameterType: "Mounting",
-        ValueId: "4",
-        ValueText: "Surface Mount",
-      },
-    ],
-    QuantityAvailable: 0,
-    ProductStatus: { Id: 0, Status: "Active" },
-    EndOfLife: false,
-    Discontinued: false,
-    UnitPrice: null,
-    ProductVariations: [],
-    ProductUrl: "",
-    DatasheetUrl: null,
-    PhotoUrl: null,
-  };
-}
-
-const mockAlternatives: MockAlternative[] = [
-  {
-    product: createMockProduct(
-      "LM358ADR",
-      "Texas Instruments",
-      "IC OPAMP GP 2 CIRCUIT 8SOIC",
-      "ROHS3 Compliant",
-      "REACH Unaffected",
-      45000
-    ),
-    compliance: { rohs: "Compliant", reach: "Compliant" },
-    riskLevel: "Low",
-    similarityScore: 92,
-    difficultyLevel: "Low",
-    scoreBreakdown: { specMatch: 48, complianceSafety: 30, availability: 14 },
-    scoreBreakdownDetail: {
-      specMatch: {
-        packageMatch: {
-          target: "8-TSSOP",
-          candidate: "8-SOIC",
-          matched: false,
-          score: 18, // 部分的に一致（8ピンで似ているが完全一致ではない）
-        },
-        voltageRangeOverlap: {
-          target: [3, 36],
-          candidate: [3, 36],
-          overlapPercent: 100,
-          score: 20,
-        },
-        mountingTypeMatch: {
-          target: "Surface Mount",
-          candidate: "Surface Mount",
-          matched: true,
-          score: 10,
-        },
-        total: 48,
-      },
-      complianceSafety: {
-        rohs: { status: "Compliant", score: 15 },
-        reach: { status: "Compliant", score: 15 },
-        riskLevel: "Low",
-        total: 30,
-      },
-      availability: {
-        quantityAvailable: 45000,
-        hasStock: true,
-        total: 14,
-      },
-    },
-  },
-  {
-    product: createMockProduct(
-      "LM358BIDR",
-      "Texas Instruments",
-      "IC OPAMP GP 2 CIRCUIT 8SOIC",
-      "ROHS3 Compliant",
-      "REACH Unaffected",
-      28000
-    ),
-    compliance: { rohs: "Compliant", reach: "Compliant" },
-    riskLevel: "Low",
-    similarityScore: 88,
-    difficultyLevel: "Low",
-    scoreBreakdown: { specMatch: 45, complianceSafety: 30, availability: 13 },
-    scoreBreakdownDetail: {
-      specMatch: {
-        packageMatch: {
-          target: "8-TSSOP",
-          candidate: "8-SOIC",
-          matched: false,
-          score: 15, // 部分的に一致
-        },
-        voltageRangeOverlap: {
-          target: [3, 36],
-          candidate: [3, 30],
-          overlapPercent: 85,
-          score: 17,
-        },
-        mountingTypeMatch: {
-          target: "Surface Mount",
-          candidate: "Surface Mount",
-          matched: true,
-          score: 10,
-        },
-        total: 45,
-      },
-      complianceSafety: {
-        rohs: { status: "Compliant", score: 15 },
-        reach: { status: "Compliant", score: 15 },
-        riskLevel: "Low",
-        total: 30,
-      },
-      availability: {
-        quantityAvailable: 28000,
-        hasStock: true,
-        total: 13,
-      },
-    },
-  },
-  {
-    product: createMockProduct(
-      "MC33078DR",
-      "Texas Instruments",
-      "IC OPAMP GP 2 CIRCUIT 8SOIC",
-      "ROHS3 Compliant",
-      "",
-      12000
-    ),
-    compliance: { rohs: "Compliant", reach: "Unknown" },
-    riskLevel: "Medium",
-    similarityScore: 75,
-    difficultyLevel: "Medium",
-    scoreBreakdown: { specMatch: 40, complianceSafety: 15, availability: 20 },
-    scoreBreakdownDetail: {
-      specMatch: {
-        packageMatch: {
-          target: "8-TSSOP",
-          candidate: "8-SOIC",
-          matched: false,
-          score: 12, // 部分的に一致
-        },
-        voltageRangeOverlap: {
-          target: [3, 36],
-          candidate: [4, 36],
-          overlapPercent: 91,
-          score: 18,
-        },
-        mountingTypeMatch: {
-          target: "Surface Mount",
-          candidate: "Surface Mount",
-          matched: true,
-          score: 10,
-        },
-        total: 40,
-      },
-      complianceSafety: {
-        rohs: { status: "Compliant", score: 15 },
-        reach: { status: "Unknown", score: 0 },
-        riskLevel: "Medium",
-        total: 15,
-      },
-      availability: {
-        quantityAvailable: 12000,
-        hasStock: true,
-        total: 20,
-      },
-    },
-  },
-  {
-    product: createMockProduct(
-      "OPA2340PA",
-      "Texas Instruments",
-      "IC OPAMP GP 2 CIRCUIT 8DIP",
-      "ROHS3 Compliant",
-      "REACH Unaffected",
-      5000
-    ),
-    compliance: { rohs: "Compliant", reach: "Compliant" },
-    riskLevel: "Low",
-    similarityScore: 65,
-    difficultyLevel: "High",
-    scoreBreakdown: { specMatch: 25, complianceSafety: 30, availability: 10 },
-    scoreBreakdownDetail: {
-      specMatch: {
-        packageMatch: {
-          target: "8-TSSOP",
-          candidate: "8-DIP",
-          matched: false,
-          score: 5, // 8ピンは一致するが形状が大きく異なる
-        },
-        voltageRangeOverlap: {
-          target: [3, 36],
-          candidate: [2.7, 5.5],
-          overlapPercent: 8,
-          score: 2,
-        },
-        mountingTypeMatch: {
-          target: "Surface Mount",
-          candidate: "Through Hole",
-          matched: false,
-          score: 0,
-        },
-        total: 25,
-      },
-      complianceSafety: {
-        rohs: { status: "Compliant", score: 15 },
-        reach: { status: "Compliant", score: 15 },
-        riskLevel: "Low",
-        total: 30,
-      },
-      availability: {
-        quantityAvailable: 5000,
-        hasStock: true,
-        total: 10,
-      },
-    },
-  },
-];
 
 function SimilarSearchContent() {
   const searchParams = useSearchParams();
@@ -335,6 +125,20 @@ function SimilarSearchContent() {
   const rohs = searchParams.get("rohs") as NormalizedCompliance["rohs"] | null;
   const reach = searchParams.get("reach") as NormalizedCompliance["reach"] | null;
   const riskLevel = searchParams.get("riskLevel") as RiskLevel | null;
+
+  // 自動検索: mpnが存在すれば検索を実行
+  const {
+    data: searchResult,
+    error: searchError,
+    isLoading,
+  } = useSWR(
+    mpn ? ["similar-search", mpn] : null,
+    () => searchSimilarProducts({ mpn: mpn! }),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
 
   if (!mpn) {
     return (
@@ -348,9 +152,6 @@ function SimilarSearchContent() {
     rohs: rohs || "Unknown",
     reach: reach || "Unknown",
   };
-
-  // 対象部品を作成（モック）
-  const targetProduct = createTargetProduct(mpn, manufacturer || "不明");
 
   return (
     <div className="space-y-6">
@@ -389,48 +190,60 @@ function SimilarSearchContent() {
         </CardContent>
       </Card>
 
-      {/* 検索状態表示 */}
+      {/* 検索結果 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">類似品検索結果</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* 検索中メッセージ（モック） */}
-            <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground mb-2">
-                類似品検索ロジック（後続フェーズで実装予定）
-              </p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>同一カテゴリ内でキーワード検索</li>
-                <li>パッケージ・電圧範囲でフィルタリング</li>
-                <li>規制準拠状況・在庫でスコアリング</li>
-                <li>類似度順にソートして表示</li>
-              </ul>
-            </div>
-
-            {/* モック結果 */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">
-                候補リスト（モックデータ）
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {mockAlternatives.map((alt, index) => (
-                  <PartCard
-                    key={index}
-                    product={alt.product}
-                    compliance={alt.compliance}
-                    riskLevel={alt.riskLevel}
-                    similarityScore={alt.similarityScore}
-                    difficultyLevel={alt.difficultyLevel}
-                    scoreBreakdown={alt.scoreBreakdown}
-                    scoreBreakdownDetail={alt.scoreBreakdownDetail}
-                    targetProduct={targetProduct}
-                    showSimilarSearchButton={false}
-                  />
-                ))}
+            {/* ローディング状態 */}
+            {isLoading && (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-3 text-muted-foreground">検索中...</span>
               </div>
-            </div>
+            )}
+
+            {/* エラー状態 */}
+            {searchError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                <p className="font-medium">検索エラー</p>
+                <p>{searchError.message}</p>
+              </div>
+            )}
+
+            {/* 検索結果 */}
+            {searchResult && !isLoading && (
+              <>
+                {/* ソースサマリ */}
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-sm font-medium mb-2">検索ソース別件数</p>
+                  <SourceSummary summary={searchResult.sourceSummary} />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    検索実行: {new Date(searchResult.searchedAt).toLocaleString("ja-JP")}
+                  </p>
+                </div>
+
+                {/* 候補リスト */}
+                {searchResult.candidates.length > 0 ? (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                      候補リスト（{searchResult.candidates.length}件）
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {searchResult.candidates.map((candidate, index) => (
+                        <CandidateCard key={candidate.digiKeyProductNumber || index} candidate={candidate} />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>候補が見つかりませんでした</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

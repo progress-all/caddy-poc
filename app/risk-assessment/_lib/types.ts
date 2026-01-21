@@ -108,3 +108,61 @@ export interface ScoreBreakdownDetail {
   complianceSafety: ComplianceSafetyDetail;
   availability: AvailabilityDetail;
 }
+
+// ==============================================================
+// 類似品検索API用の型定義
+// ==============================================================
+
+/**
+ * 候補のソース（どのAPIから取得されたか）
+ */
+export type CandidateSource =
+  | "substitutions" // DigiKey Substitutions API
+  | "recommended" // DigiKey Recommended Products API
+  | "custom"; // カスタムロジック（将来実装）
+
+/**
+ * 検索候補の基本情報（各APIの共通部分）
+ */
+export interface CandidateInfo {
+  digiKeyProductNumber: string;
+  manufacturerProductNumber: string;
+  manufacturerName: string;
+  description: string;
+  quantityAvailable: number;
+  productUrl?: string;
+  photoUrl?: string;
+  unitPrice?: string;
+  /** どのAPIから取得されたか（複数の場合は配列） */
+  sources: CandidateSource[];
+  /** Substitutions APIの場合のタイプ */
+  substituteType?: string;
+}
+
+/**
+ * 類似品検索APIへのリクエスト
+ */
+export interface SimilarSearchRequest {
+  /** 対象部品のMPN */
+  mpn: string;
+  /** 対象部品のDigiKey PN（あれば優先使用） */
+  digiKeyProductNumber?: string;
+}
+
+/**
+ * 類似品検索APIからのレスポンス
+ */
+export interface SimilarSearchResponse {
+  /** 対象部品のMPN */
+  targetMpn: string;
+  /** 候補リスト */
+  candidates: CandidateInfo[];
+  /** 検索実行時刻 */
+  searchedAt: string;
+  /** 各ソースの取得結果サマリ */
+  sourceSummary: {
+    substitutions: { count: number; error?: string };
+    recommended: { count: number; error?: string };
+    custom: { count: number; error?: string };
+  };
+}
