@@ -10,16 +10,16 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Input                                    │
 ├─────────────────────────────────────────────────────────────────┤
-│  docs/mouser-openapi-v1-spec.json      (Swagger 2.0)            │
-│  docs/digikey-openapi-v4-ProductSearch-spec.json  (Swagger 2.0) │
+│  docs/mouser-search-v1.openapi2.json           (OpenAPI 2.0)    │
+│  docs/digikey-productsearch-v4.openapi2.json   (OpenAPI 2.0)    │
 └─────────────────────────────────────────────────────────────────┘
                               │
-                              ▼ npm run convert:swagger
+                              ▼ npm run convert:openapi
 ┌─────────────────────────────────────────────────────────────────┐
 │                   Intermediate (OpenAPI 3.0)                     │
 ├─────────────────────────────────────────────────────────────────┤
-│  docs/mouser-openapi-v3-spec.json                               │
-│  docs/digikey-openapi-v3-spec.json                              │
+│  docs/mouser-search-v1.openapi3.json                            │
+│  docs/digikey-productsearch-v4.openapi3.json                    │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼ npm run generate:api-types
@@ -53,10 +53,10 @@
 
 | ファイル | 形式 | 説明 |
 |---------|------|------|
-| `mouser-openapi-v1-spec.json` | Swagger 2.0 | Mouser APIの公式仕様 |
-| `digikey-openapi-v4-ProductSearch-spec.json` | Swagger 2.0 | DigiKey APIの公式仕様 |
-| `mouser-openapi-v3-spec.json` | OpenAPI 3.0 | 変換後（自動生成） |
-| `digikey-openapi-v3-spec.json` | OpenAPI 3.0 | 変換後（自動生成） |
+| `mouser-search-v1.openapi2.json` | OpenAPI 2.0 | Mouser APIの公式仕様 |
+| `digikey-productsearch-v4.openapi2.json` | OpenAPI 2.0 | DigiKey APIの公式仕様 |
+| `mouser-search-v1.openapi3.json` | OpenAPI 3.0 | 変換後（自動生成） |
+| `digikey-productsearch-v4.openapi3.json` | OpenAPI 3.0 | 変換後（自動生成） |
 
 ### 出力ファイル（app/_lib/vendor/）
 
@@ -169,8 +169,8 @@ export class MouserApiClient {
 API仕様が更新された場合：
 
 ```bash
-# 1. Swagger 2.0 → OpenAPI 3.0 変換
-npm run convert:swagger
+# 1. OpenAPI 2.0 → OpenAPI 3.0 変換
+npm run convert:openapi
 
 # 2. TypeScript型を生成
 npm run generate:api-types
@@ -209,12 +209,12 @@ npm run generate:digikey-types
 
 ## トラブルシューティング
 
-### openapi-typescript がSwagger 2.0をサポートしない
+### openapi-typescript がOpenAPI 2.0をサポートしない
 
-`openapi-typescript` v7.x はSwagger 2.0を直接サポートしていません。先に `swagger2openapi` で変換してください：
+`openapi-typescript` v7.x はOpenAPI 2.0を直接サポートしていません。先に `swagger2openapi` で変換してください：
 
 ```bash
-npm run convert:swagger
+npm run convert:openapi
 ```
 
 ### 型が見つからない
