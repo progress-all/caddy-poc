@@ -33,3 +33,6 @@ export const vendors: Vendor[] = [
     ],
   },
 ];
+
+// リスク評価ページのパス
+export const RISK_ASSESSMENT_PATH = "/risk-assessment";

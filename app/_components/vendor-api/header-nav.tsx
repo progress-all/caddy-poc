@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/app/_lib/utils";
-import { vendors, type Vendor } from "./vendors";
+import { vendors, type Vendor, RISK_ASSESSMENT_PATH } from "./vendors";
 
 function getCurrentApiInfo(pathname: string): {
   vendor: Vendor | null;
@@ -26,9 +26,14 @@ function getCurrentApiInfo(pathname: string): {
   return { vendor: null, endpoint: null };
 }
 
+function isRiskAssessmentPage(pathname: string): boolean {
+  return pathname.startsWith(RISK_ASSESSMENT_PATH);
+}
+
 export function HeaderNav() {
   const pathname = usePathname();
   const currentApi = getCurrentApiInfo(pathname);
+  const isRiskAssessment = isRiskAssessmentPage(pathname);
 
   return (
     <header className="border-b bg-card flex-shrink-0">
@@ -84,6 +89,19 @@ export function HeaderNav() {
               </DropdownMenu>
             );
           })}
+
+          {/* リスク評価へのリンク */}
+          <Button
+            variant={isRiskAssessment ? "secondary" : "ghost"}
+            asChild
+            className={cn(
+              "h-9 px-3",
+              isRiskAssessment &&
+                "bg-primary/10 text-foreground font-medium"
+            )}
+          >
+            <Link href={RISK_ASSESSMENT_PATH}>リスク評価</Link>
+          </Button>
         </nav>
 
         {/* API選択の右横: 現在のAPI表示（ページタイトル） */}
@@ -92,6 +110,11 @@ export function HeaderNav() {
             <span>{currentApi.vendor.label}</span>
             <span className="text-muted-foreground">/</span>
             <span>{currentApi.endpoint.label}</span>
+          </h1>
+        )}
+        {isRiskAssessment && (
+          <h1 className="text-lg font-semibold text-foreground">
+            規制リスク評価・代替品提案
           </h1>
         )}
       </div>
