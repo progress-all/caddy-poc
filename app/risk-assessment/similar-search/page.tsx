@@ -78,9 +78,9 @@ function CandidateCard({ candidate }: { candidate: CandidateInfo }) {
           <span className="text-muted-foreground">
             在庫: {candidate.quantityAvailable.toLocaleString()}
           </span>
-          {candidate.unitPrice && (
-            <span className="font-medium">{candidate.unitPrice}</span>
-          )}
+          <span className="font-medium">
+            単価: {candidate.unitPrice != null ? `$${candidate.unitPrice}` : "不明"}
+          </span>
         </div>
 
         {/* DigiKeyリンク */}
