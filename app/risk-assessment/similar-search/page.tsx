@@ -35,6 +35,7 @@ function CandidateCard({ candidate }: { candidate: CandidateInfo }) {
         <div className="flex items-start gap-2">
           {/* 画像（あれば表示） */}
           {candidate.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={candidate.photoUrl}
               alt={candidate.manufacturerProductNumber}

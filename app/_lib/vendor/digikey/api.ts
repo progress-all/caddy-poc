@@ -6,6 +6,10 @@
 import type {
   KeywordSearchInput,
   DigiKeyKeywordSearchResults,
+  RecommendedProductsInput,
+  DigiKeyRecommendedProductsResponse,
+  SubstitutionsInput,
+  DigiKeyProductSubstitutesResponse,
 } from "./types";
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {

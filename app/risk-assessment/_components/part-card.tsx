@@ -120,6 +120,7 @@ export function PartCard({
         {/* ヘッダー: 画像 + MPN + メーカー */}
         <div className="flex items-start gap-2">
           {product.PhotoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={product.PhotoUrl}
               alt={product.ManufacturerProductNumber}
