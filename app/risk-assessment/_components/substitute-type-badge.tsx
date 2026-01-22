@@ -18,7 +18,7 @@ interface SubstituteTypeBadgeProps {
 
 /**
  * 代替品種別チップコンポーネント
- * 4種別（メーカー推奨、直接代替、パラメトリック同等品、類似品）を表示
+ * 3種別（メーカー推奨、パラメトリック代替品、類似）を表示
  * 全て outline スタイルで統一
  */
 export function SubstituteTypeBadge({

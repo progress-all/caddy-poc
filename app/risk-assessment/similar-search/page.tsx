@@ -105,7 +105,7 @@ function CandidateCard({ candidate }: { candidate: CandidateInfo }) {
 
 /**
  * ソースサマリの表示（日本語、エラー表示なし）
- * DigiKey 代替品の4種別ごとの件数と説明を表示
+ * DigiKey 代替品の3種別ごとの件数と説明を表示
  */
 function SourceSummary({ 
   summary, 
@@ -117,10 +117,9 @@ function SourceSummary({
   // 種別ごとに件数を集計
   const typeCounts = new Map<SubstituteType | "unknown", number>();
   
-  // 4種類のタイプを初期化（0件も表示するため）
+  // 3種類のタイプを初期化（0件も表示するため）
   const allTypes: (SubstituteType | "unknown")[] = [
     "ManufacturerRecommended",
-    "DirectReplacement",
     "ParametricEquivalent",
     "Similar",
     "unknown",
@@ -146,7 +145,7 @@ function SourceSummary({
         <span className="font-medium">合計 {totalCount}件</span>
       </div>
       
-      {/* 小分類: 4種別 */}
+      {/* 小分類: 3種別 */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pl-4 border-l-2 border-muted ml-2 text-xs">
         {allTypes.map((type) => {
           const count = typeCounts.get(type) || 0;
