@@ -166,11 +166,11 @@ function SourceSummary({
               <span className="sr-only">代替品種別の説明</span>
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>代替品種別の説明</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-4 pt-2">
               {allTypes.map((type) => {
                 const typeConfig =
                   type === "unknown"
@@ -178,9 +178,11 @@ function SourceSummary({
                     : substituteTypeLabels[type as SubstituteType];
                 
                 return (
-                  <div key={type} className="flex items-start gap-3">
-                    <SubstituteTypeBadge type={type} className="text-xs flex-shrink-0 mt-0.5" />
-                    <span className="text-muted-foreground">{typeConfig.description}</span>
+                  <div key={type} className="flex flex-col gap-1.5 pb-3 border-b last:border-b-0 last:pb-0">
+                    <SubstituteTypeBadge type={type} className="text-xs w-fit" />
+                    <p className="text-sm text-muted-foreground leading-relaxed pl-1">
+                      {typeConfig.description}
+                    </p>
                   </div>
                 );
               })}

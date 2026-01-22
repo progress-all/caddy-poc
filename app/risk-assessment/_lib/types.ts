@@ -153,13 +153,13 @@ export const substituteTypeLabels: Record<
   },
   ParametricEquivalent: {
     label: "パラメトリック代替品",
-    description: "仕様パラメータが理論的に一致する製品",
+    description: "主要パラメータ（抵抗値、電圧、容量等）と、基板の接地面（フットプリント）が完全に一致しており、理論的に代替可能である",
     variant: "outline",
     priority: 2,
   },
   Similar: {
     label: "類似",
-    description: "基本機能は同等だが差異あり（要確認）",
+    description: "基本機能（コア仕様）は適合していますが、二次的な属性（高さ・温度範囲・素材等）に差異がある",
     variant: "outline",
     priority: 3,
   },
