@@ -1,20 +1,90 @@
 import { Table } from "@tanstack/react-table"
-import { X } from "lucide-react"
+import { Download, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import type { CsvColumnConfig } from "./data-table"
+import { generateCSV, downloadCSV, generateCSVFilename } from "@/app/_lib/csv-utils"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
   searchKey?: string
+  enableCsvExport?: boolean
+  csvFilenamePrefix?: string
+  csvColumnAccessors?: CsvColumnConfig<TData>[]
+  data: TData[]
 }
 
 export function DataTableToolbar<TData>({
   table,
   searchKey,
+  enableCsvExport = false,
+  csvFilenamePrefix = "data",
+  csvColumnAccessors,
+  data,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0 || 
-    (table.getState().globalFilter as string)?.length > 0
+  const state = table.getState()
+  const isFiltered = (state.columnFilters?.length ?? 0) > 0 || 
+    (state.globalFilter as string)?.length > 0
+
+  const handleCsvExport = () => {
+    if (!csvColumnAccessors || csvColumnAccessors.length === 0) {
+      // csvColumnAccessorsが指定されていない場合は、表示カラムから自動生成
+      const visibleColumns = table.getVisibleLeafColumns()
+      const headers: string[] = []
+      const accessors: Array<(row: TData) => unknown> = []
+
+      for (const column of visibleColumns) {
+        const header = column.columnDef.header
+        // ヘッダーが文字列の場合はそのまま使用、React要素の場合はaccessorKeyから推測
+        if (typeof header === "string") {
+          headers.push(header)
+        } else if (column.columnDef.accessorKey) {
+          // accessorKeyからヘッダー名を推測（キャメルケースをスペース区切りに変換）
+          const key = String(column.columnDef.accessorKey)
+          headers.push(
+            key
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase())
+              .trim()
+          )
+        } else {
+          headers.push(String(column.id))
+        }
+
+        // アクセサー関数を作成
+        if (column.columnDef.accessorFn) {
+          accessors.push(column.columnDef.accessorFn as (row: TData) => unknown)
+        } else if (column.columnDef.accessorKey) {
+          const key = column.columnDef.accessorKey as keyof TData
+          accessors.push((row: TData) => row[key])
+        } else {
+          accessors.push(() => "")
+        }
+      }
+
+      // CSVデータを生成
+      const rows = data.map((row) => accessors.map((accessor) => accessor(row)))
+      const csvContent = generateCSV(headers, rows)
+      const filename = generateCSVFilename(csvFilenamePrefix)
+      downloadCSV(filename, csvContent)
+    } else {
+      // csvColumnAccessorsが指定されている場合はそれを使用
+      const headers = csvColumnAccessors.map((config) => config.header)
+      const rows = data.map((row) =>
+        csvColumnAccessors.map((config) => {
+          if (typeof config.accessor === "function") {
+            return config.accessor(row)
+          } else {
+            return row[config.accessor]
+          }
+        })
+      )
+      const csvContent = generateCSV(headers, rows)
+      const filename = generateCSVFilename(csvFilenamePrefix)
+      downloadCSV(filename, csvContent)
+    }
+  }
 
   return (
     <div className="flex items-center justify-between">
@@ -49,6 +119,16 @@ export function DataTableToolbar<TData>({
           >
             リセット
             <X className="ml-1 h-3 w-3" />
+          </Button>
+        )}
+        {enableCsvExport && (
+          <Button
+            variant="outline"
+            onClick={handleCsvExport}
+            className="h-7 px-2 lg:px-3 text-xs"
+          >
+            <Download className="mr-1 h-3 w-3" />
+            CSVダウンロード
           </Button>
         )}
       </div>

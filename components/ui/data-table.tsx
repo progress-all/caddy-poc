@@ -26,6 +26,16 @@ import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
 import { DataTableViewOptions } from "./data-table-view-options"
 
+/**
+ * CSVカラム設定
+ */
+export interface CsvColumnConfig<TData> {
+  /** CSVヘッダー名 */
+  header: string
+  /** データ取得方法（キーまたは関数） */
+  accessor: keyof TData | ((row: TData) => unknown)
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
@@ -37,6 +47,12 @@ interface DataTableProps<TData, TValue> {
   pageSize?: number
   globalFilterFn?: (row: any, columnId: string, filterValue: any) => boolean
   getRowClassName?: (row: TData) => string
+  /** CSVエクスポート機能を有効化 */
+  enableCsvExport?: boolean
+  /** CSVファイル名のプレフィックス（デフォルト: "data"） */
+  csvFilenamePrefix?: string
+  /** CSVカラム設定（省略時は表示カラムから自動生成） */
+  csvColumnAccessors?: CsvColumnConfig<TData>[]
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +66,9 @@ export function DataTable<TData, TValue>({
   pageSize = 10,
   globalFilterFn,
   getRowClassName,
+  enableCsvExport = false,
+  csvFilenamePrefix = "data",
+  csvColumnAccessors,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -94,10 +113,26 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col h-full min-h-0 space-y-2">
-      {(enableFiltering || enableColumnVisibility) && (
+      {(enableFiltering || enableColumnVisibility || enableCsvExport) && (
         <div className="flex items-center justify-between py-1 flex-shrink-0">
           {enableFiltering && searchKey && (
-            <DataTableToolbar table={table} searchKey={searchKey} />
+            <DataTableToolbar
+              table={table}
+              searchKey={searchKey}
+              enableCsvExport={enableCsvExport}
+              csvFilenamePrefix={csvFilenamePrefix}
+              csvColumnAccessors={csvColumnAccessors}
+              data={data}
+            />
+          )}
+          {!enableFiltering && enableCsvExport && (
+            <DataTableToolbar
+              table={table}
+              enableCsvExport={enableCsvExport}
+              csvFilenamePrefix={csvFilenamePrefix}
+              csvColumnAccessors={csvColumnAccessors}
+              data={data}
+            />
           )}
           {enableColumnVisibility && <DataTableViewOptions table={table} />}
         </div>

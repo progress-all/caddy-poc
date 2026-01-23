@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ExternalLink, FileText } from "lucide-react";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, type CsvColumnConfig } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,112 @@ export function CrossReferenceTableView({
     return "";
   };
 
+  // CSVエクスポート用のカラム設定を生成
+  const csvColumnAccessors = useMemo(() => {
+    const configs: CsvColumnConfig<CandidateDetailedInfo>[] = [
+      {
+        header: "Mfr Part #",
+        accessor: (row) => row.manufacturerProductNumber,
+      },
+      {
+        header: "Description",
+        accessor: (row) => row.description,
+      },
+      {
+        header: "Manufacturer",
+        accessor: (row) => row.manufacturerName,
+      },
+      {
+        header: "Match Type",
+        accessor: (row) => {
+          // 対象部品かどうかを判定
+          if (
+            targetProduct &&
+            (targetProduct.digiKeyProductNumber === row.digiKeyProductNumber ||
+              (targetProduct.digiKeyProductNumber === "" &&
+                targetProduct.manufacturerProductNumber ===
+                  row.manufacturerProductNumber))
+          ) {
+            return "Target";
+          }
+          return row.substituteType || "";
+        },
+      },
+      {
+        header: "Unit Price",
+        accessor: (row) => (row.unitPrice ? `$${row.unitPrice}` : ""),
+      },
+      {
+        header: "Quantity Available",
+        accessor: (row) => row.quantityAvailable.toLocaleString(),
+      },
+      {
+        header: "DigiKey Part Number",
+        accessor: (row) => row.digiKeyProductNumber,
+      },
+      {
+        header: "Product URL",
+        accessor: (row) => row.productUrl || "",
+      },
+      {
+        header: "Part Status",
+        accessor: (row) => row.partStatus || "",
+      },
+      {
+        header: "Series",
+        accessor: (row) => row.series || "",
+      },
+      {
+        header: "Category",
+        accessor: (row) => row.category?.name || "",
+      },
+      {
+        header: "Datasheet URL",
+        accessor: (row) => row.datasheetUrl || "",
+      },
+      {
+        header: "Lead Time",
+        accessor: (row) =>
+          row.manufacturerLeadWeeks
+            ? `${row.manufacturerLeadWeeks} weeks`
+            : "",
+      },
+      {
+        header: "RoHS",
+        accessor: (row) => row.classifications?.rohs || "",
+      },
+      {
+        header: "REACH",
+        accessor: (row) => row.classifications?.reach || "",
+      },
+    ];
+
+    // 動的パラメータを追加
+    const parameterNames = new Set<string>();
+    for (const candidate of tableData) {
+      if (candidate.parameters) {
+        for (const param of candidate.parameters) {
+          if (param.name) {
+            parameterNames.add(param.name);
+          }
+        }
+      }
+    }
+
+    const sortedParameterNames = Array.from(parameterNames).sort();
+    for (const paramName of sortedParameterNames) {
+      configs.push({
+        header: paramName,
+        accessor: (row) => {
+          const param = row.parameters?.find((p) => p.name === paramName);
+          return param?.value || "";
+        },
+      });
+    }
+
+    return configs;
+  }, [tableData, targetProduct]);
+
   return (
     <div className="w-full">
       <DataTable
@@ -64,6 +170,9 @@ export function CrossReferenceTableView({
         enableColumnVisibility={true}
         pageSize={20}
         getRowClassName={getRowClassName}
+        enableCsvExport={true}
+        csvFilenamePrefix="similar-search"
+        csvColumnAccessors={csvColumnAccessors}
       />
     </div>
   );
