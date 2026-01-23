@@ -134,35 +134,12 @@ export type SubstituteType =
   | "Similar";
 
 /**
- * 代替品種別のラベル定義（日本語・説明・色分け）
+ * 代替品種別の優先順位（グルーピング時の表示順）
  */
-export const substituteTypeLabels: Record<
-  SubstituteType,
-  {
-    label: string;
-    description: string;
-    variant: "default" | "secondary" | "outline" | "destructive";
-    priority: number; // グルーピング時の表示順（互換性の高い順）
-  }
-> = {
-  ManufacturerRecommended: {
-    label: "メーカー推奨",
-    description: "メーカーがPCN/EOLで公式に推奨する代替品",
-    variant: "outline",
-    priority: 1,
-  },
-  ParametricEquivalent: {
-    label: "パラメトリック代替品",
-    description: "主要パラメータ（抵抗値、電圧、容量等）と、基板の接地面（フットプリント）が完全に一致しており、理論的に代替可能である",
-    variant: "outline",
-    priority: 2,
-  },
-  Similar: {
-    label: "類似",
-    description: "基本機能（コア仕様）は適合していますが、二次的な属性（高さ・温度範囲・素材等）に差異がある",
-    variant: "outline",
-    priority: 3,
-  },
+export const substituteTypePriority: Record<SubstituteType, number> = {
+  ManufacturerRecommended: 1,
+  ParametricEquivalent: 2,
+  Similar: 3,
 };
 
 /**
@@ -184,6 +161,54 @@ export interface CandidateInfo {
 }
 
 /**
+ * 詳細情報を含む候補情報（Product Details APIから取得）
+ */
+export interface CandidateDetailedInfo extends CandidateInfo {
+  // Product基本情報
+  detailedDescription?: string;
+  datasheetUrl?: string;
+  
+  // ステータス情報
+  partStatus?: string;
+  backOrderNotAllowed?: boolean;
+  normallyStocking?: boolean;
+  discontinued?: boolean;
+  endOfLife?: boolean;
+  ncnr?: boolean;
+  
+  // カテゴリ・シリーズ
+  category?: { name?: string; categoryId?: number };
+  series?: string;
+  
+  // 在庫・リードタイム
+  manufacturerLeadWeeks?: string;
+  manufacturerPublicQuantity?: number;
+  
+  // 規制情報
+  classifications?: {
+    rohs?: string;
+    reach?: string;
+    moisture?: string;
+    exportControl?: string;
+  };
+  
+  // バリエーション（パッケージタイプごとの在庫・価格）
+  variations?: Array<{
+    digiKeyProductNumber?: string;
+    packageType?: string;
+    quantityAvailable?: number;
+    pricing?: Array<{ breakQuantity: number; unitPrice: number }>;
+  }>;
+  
+  // 動的パラメータ（すべてのパラメータを格納）
+  parameters?: Array<{
+    name: string;      // ParameterText
+    value: string;     // ValueText
+    parameterId?: number;
+  }>;
+}
+
+/**
  * 類似品検索APIへのリクエスト
  */
 export interface SimilarSearchRequest {
@@ -199,6 +224,8 @@ export interface SimilarSearchRequest {
 export interface SimilarSearchResponse {
   /** 対象部品のMPN */
   targetMpn: string;
+  /** 対象部品の詳細情報 */
+  targetProduct?: CandidateDetailedInfo;
   /** 候補リスト */
   candidates: CandidateInfo[];
   /** 検索実行時刻 */

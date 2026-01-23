@@ -14,6 +14,7 @@ import type {
 export type DigiKeyKeywordRequest = components["schemas"]["KeywordRequest"];
 export type DigiKeyKeywordResponse = components["schemas"]["KeywordResponse"];
 export type DigiKeyProduct = components["schemas"]["Product"];
+export type DigiKeyProductDetails = components["schemas"]["ProductDetails"];
 export type DigiKeySortOptions = components["schemas"]["SortOptions"];
 export type DigiKeyFilterOptionsRequest = components["schemas"]["FilterOptionsRequest"];
 export type DigiKeyProblemDetails = components["schemas"]["DKProblemDetails"];
@@ -160,6 +161,56 @@ export class DigiKeyApiClient {
 
     const queryString = queryParams.toString();
     const url = `${DIGIKEY_API_BASE_URL}/products/v4/search/${encodeURIComponent(request.productNumber)}/substitutions${queryString ? `?${queryString}` : ""}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-DIGIKEY-Client-Id": this.clientId,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { message: errorText };
+      }
+      throw new Error(
+        `DigiKey API error: ${response.status} ${response.statusText}`,
+        { cause: errorData }
+      );
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Product Detailsを取得
+   * DigiKey Part NumberまたはManufacturer Part Numberで製品の詳細情報を取得
+   */
+  async getProductDetails(
+    productNumber: string,
+    options?: {
+      manufacturerId?: string;
+      includes?: string;
+    }
+  ): Promise<DigiKeyProductDetails> {
+    const token = await this.getAccessToken();
+
+    // クエリパラメータを構築
+    const queryParams = new URLSearchParams();
+    if (options?.manufacturerId) {
+      queryParams.append("manufacturerId", options.manufacturerId);
+    }
+    if (options?.includes) {
+      queryParams.append("includes", options.includes);
+    }
+
+    const queryString = queryParams.toString();
+    const url = `${DIGIKEY_API_BASE_URL}/products/v4/search/${encodeURIComponent(productNumber)}/productdetails${queryString ? `?${queryString}` : ""}`;
 
     const response = await fetch(url, {
       method: "GET",
