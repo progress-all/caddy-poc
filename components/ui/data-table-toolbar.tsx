@@ -35,15 +35,19 @@ export function DataTableToolbar<TData>({
       const accessors: Array<(row: TData) => unknown> = []
 
       for (const column of visibleColumns) {
-        const header = column.columnDef.header
+        // columnDefを Record<string, unknown> としてアクセス
+        const columnDef = column.columnDef as unknown as Record<string, unknown>
+        const header = columnDef.header
+        const accessorKey = columnDef.accessorKey as string | undefined
+        const accessorFn = columnDef.accessorFn as ((row: TData) => unknown) | undefined
+
         // ヘッダーが文字列の場合はそのまま使用、React要素の場合はaccessorKeyから推測
         if (typeof header === "string") {
           headers.push(header)
-        } else if (column.columnDef.accessorKey) {
+        } else if (accessorKey) {
           // accessorKeyからヘッダー名を推測（キャメルケースをスペース区切りに変換）
-          const key = String(column.columnDef.accessorKey)
           headers.push(
-            key
+            accessorKey
               .replace(/([A-Z])/g, " $1")
               .replace(/^./, (str) => str.toUpperCase())
               .trim()
@@ -53,10 +57,10 @@ export function DataTableToolbar<TData>({
         }
 
         // アクセサー関数を作成
-        if (column.columnDef.accessorFn) {
-          accessors.push(column.columnDef.accessorFn as (row: TData) => unknown)
-        } else if (column.columnDef.accessorKey) {
-          const key = column.columnDef.accessorKey as keyof TData
+        if (accessorFn) {
+          accessors.push(accessorFn)
+        } else if (accessorKey) {
+          const key = accessorKey as keyof TData
           accessors.push((row: TData) => row[key])
         } else {
           accessors.push(() => "")
