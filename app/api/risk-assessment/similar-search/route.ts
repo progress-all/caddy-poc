@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DigiKeyApiClient } from "@/app/_lib/vendor/digikey/client";
+import { DigiKeyApiClient, type DigiKeyProductDetails } from "@/app/_lib/vendor/digikey/client";
 import type {
   SimilarSearchRequest,
   SimilarSearchResponse,
@@ -223,12 +223,21 @@ async function enrichCandidatesWithDetails(
     (c) => c.digiKeyProductNumber
   );
 
-  // 並列でProduct Details APIを呼び出し
-  const detailResults = await Promise.allSettled(
-    candidatesWithDigiKeyPn.map((candidate) =>
-      client.getProductDetails(candidate.digiKeyProductNumber)
-    )
-  );
+  // sleep関数: レートリミット対策のため待機時間を挿入
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // 直列でProduct Details APIを呼び出し（レートリミット対策）
+  const detailResults: PromiseSettledResult<DigiKeyProductDetails>[] = [];
+  for (const candidate of candidatesWithDigiKeyPn) {
+    try {
+      const result = await client.getProductDetails(candidate.digiKeyProductNumber);
+      detailResults.push({ status: 'fulfilled', value: result });
+    } catch (error) {
+      detailResults.push({ status: 'rejected', reason: error });
+    }
+    // Spike Arrest対策: 200ms待機（5リクエスト/秒以下に抑制）
+    await sleep(200);
+  }
 
   // 詳細情報をマージ
   const detailedCandidates: CandidateDetailedInfo[] = candidates.map(
