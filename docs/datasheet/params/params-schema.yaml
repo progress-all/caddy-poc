@@ -1,0 +1,329 @@
+# パラメーター定義のマスターファイル
+# LLMによるデータ抽出時のプロンプトにも使用
+# このファイルを一元管理することで、パラメーターの追加・削除が容易になります
+
+version: "1.0"
+
+parameters:
+  # ==========================================
+  # 基本寸法・定格 (Page 1 - Type & Dimensions, Rated value, Package)
+  # ==========================================
+  
+  - id: L_Dimensions
+    description: 長さ (L寸法)
+    category: dimensions
+    extraction_hint: "Page 1 - Type & Dimensions セクションの L 寸法を抽出"
+    
+  - id: W_Dimensions
+    description: 幅 (W寸法)
+    category: dimensions
+    extraction_hint: "Page 1 - Type & Dimensions セクションの W 寸法を抽出"
+    
+  - id: T_Dimensions
+    description: 厚さ (T寸法)
+    category: dimensions
+    extraction_hint: "Page 1 - Type & Dimensions セクションの T 寸法を抽出"
+    
+  - id: e_Dimensions
+    description: 電極寸法 (e)
+    category: dimensions
+    extraction_hint: "Page 1 - Type & Dimensions セクションの電極寸法 e を抽出"
+    
+  - id: g_Dimensions
+    description: 電極間隔 (g)
+    category: dimensions
+    extraction_hint: "Page 1 - Type & Dimensions セクションの電極間隔 g を抽出"
+    
+  - id: TemperatureCharacteristics_PublicSTD
+    description: 温度特性 (公的規格コード)
+    category: rated_values
+    extraction_hint: "Page 1 - Rated value セクションの温度特性コード (例: X5R, X7R) を抽出"
+    
+  - id: TemperatureCharacteristics_CapChange
+    description: 温度特性 (容量変化率)
+    category: rated_values
+    extraction_hint: "Page 1 - Rated value セクションの温度特性による容量変化率を抽出"
+    
+  - id: TemperatureCharacteristics_TempRange
+    description: 温度特性 (温度範囲)
+    category: rated_values
+    extraction_hint: "Page 1 - Rated value セクションの動作温度範囲を抽出"
+    
+  - id: RatedVoltage
+    description: 定格電圧
+    category: rated_values
+    extraction_hint: "Page 1 - Rated value セクションの定格電圧を抽出"
+    
+  - id: NominalCapacitance
+    description: 公称静電容量
+    category: rated_values
+    extraction_hint: "Page 1 - Rated value セクションの公称静電容量を抽出"
+    
+  - id: CapacitanceTolerance
+    description: 静電容量許容差
+    category: rated_values
+    extraction_hint: "Page 1 - Rated value セクションの静電容量許容差を抽出"
+    
+  - id: Packaging_180mmReel
+    description: 梱包 (180mmリール)
+    category: packaging
+    extraction_hint: "Page 1 - Package セクションの180mmリールの梱包情報を抽出"
+    
+  - id: Packaging_330mmReel
+    description: 梱包 (330mmリール)
+    category: packaging
+    extraction_hint: "Page 1 - Package セクションの330mmリールの梱包情報を抽出"
+    
+  # ==========================================
+  # 試験仕様 (Page 2-4 - Specifications and Test Methods)
+  # ==========================================
+  
+  - id: RatedVoltage_Spec
+    description: 定格電圧 規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの定格電圧に関する規格を抽出"
+    
+  - id: Appearance_Spec
+    description: 外観 規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの外観に関する規格を抽出"
+    
+  - id: Dimension_Spec
+    description: 寸法 規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの寸法に関する規格を抽出"
+    
+  - id: VoltageProof_Spec
+    description: 耐電圧 規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの耐電圧に関する規格を抽出"
+    
+  - id: VoltageProof_TestVoltage
+    description: 耐電圧 試験電圧
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの耐電圧試験における試験電圧を抽出"
+    
+  - id: VoltageProof_AppliedTime
+    description: 耐電圧 印加時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの耐電圧試験における印加時間を抽出"
+    
+  - id: InsulationResistance_Spec
+    description: 絶縁抵抗 規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの絶縁抵抗に関する規格を抽出"
+    
+  - id: InsulationResistance_ChargingTime
+    description: 絶縁抵抗 充電時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの絶縁抵抗測定における充電時間を抽出"
+    
+  - id: Capacitance_Frequency
+    description: 静電容量 測定周波数
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの静電容量測定における周波数を抽出"
+    
+  - id: Capacitance_Voltage
+    description: 静電容量 測定電圧
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの静電容量測定における電圧を抽出"
+    
+  - id: DissipationFactor_Spec
+    description: 誘電正接 規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの誘電正接に関する規格を抽出"
+    
+  - id: TemperatureCharacteristics_CapChange_Spec
+    description: 温度特性 容量変化率 判定規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの温度特性による容量変化率の判定規格を抽出"
+    
+  - id: AdhesiveStrength_AppliedForce
+    description: 終端固着強度 加圧力
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの終端固着強度試験における加圧力を抽出"
+    
+  - id: AdhesiveStrength_HoldingTime
+    description: 終端固着強度 保持時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの終端固着強度試験における保持時間を抽出"
+    
+  - id: Vibration_Appearance_Spec
+    description: 耐振動性 外観規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの耐振動性試験における外観規格を抽出"
+    
+  - id: Vibration_Capacitance_Spec
+    description: 耐振動性 静電容量規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの耐振動性試験における静電容量規格を抽出"
+    
+  - id: Vibration_DF_Spec
+    description: 耐振動性 誘電正接規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの耐振動性試験における誘電正接規格を抽出"
+    
+  - id: Vibration_TotalAmplitude
+    description: 耐振動性 全振幅
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの耐振動性試験における全振幅を抽出"
+    
+  - id: Vibration_Time
+    description: 耐振動性 試験時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの耐振動性試験における試験時間を抽出"
+    
+  - id: SubstrateBendingTest_Appearance_Spec
+    description: 基板曲げテスト 外観規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの基板曲げテストにおける外観規格を抽出"
+    
+  - id: SubstrateBendingTest_CapChange_Spec
+    description: 基板曲げテスト 容量変化率規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの基板曲げテストにおける容量変化率規格を抽出"
+    
+  - id: SubstrateBendingTest_Flexure
+    description: 基板曲げテスト たわみ量
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの基板曲げテストにおけるたわみ量を抽出"
+    
+  - id: SubstrateBendingTest_HoldingTime
+    description: 基板曲げテスト 保持時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの基板曲げテストにおける保持時間を抽出"
+    
+  - id: Solderability_Spec
+    description: はんだ付け性 判定規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションのはんだ付け性に関する判定規格を抽出"
+    
+  - id: Solderability_SolderTemp
+    description: はんだ付け性 はんだ温度
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションのはんだ付け性試験におけるはんだ温度を抽出"
+    
+  - id: Solderability_ImmersionTime
+    description: はんだ付け性 浸漬時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションのはんだ付け性試験における浸漬時間を抽出"
+    
+  - id: ResistanceToSolderingHeat_Appearance_Spec
+    description: はんだ耐熱 外観規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションのはんだ耐熱試験における外観規格を抽出"
+    
+  - id: ResistanceToSolderingHeat_CapChange_Spec
+    description: はんだ耐熱 容量変化率規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションのはんだ耐熱試験における容量変化率規格を抽出"
+    
+  - id: ResistanceToSolderingHeat_DF_Spec
+    description: はんだ耐熱 誘電正接規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションのはんだ耐熱試験における誘電正接規格を抽出"
+    
+  - id: ResistanceToSolderingHeat_IR_Spec
+    description: はんだ耐熱 絶縁抵抗規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションのはんだ耐熱試験における絶縁抵抗規格を抽出"
+    
+  - id: ResistanceToSolderingHeat_VoltageProof_Spec
+    description: はんだ耐熱 耐電圧規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションのはんだ耐熱試験における耐電圧規格を抽出"
+    
+  - id: ResistanceToSolderingHeat_SolderTemp
+    description: はんだ耐熱 はんだ温度
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションのはんだ耐熱試験におけるはんだ温度を抽出"
+    
+  - id: ResistanceToSolderingHeat_ImmersionTime
+    description: はんだ耐熱 浸漬時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションのはんだ耐熱試験における浸漬時間を抽出"
+    
+  - id: TemperatureSuddenChange_Appearance_Spec
+    description: 温度急変 外観規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの温度急変試験における外観規格を抽出"
+    
+  - id: TemperatureSuddenChange_CapChange_Spec
+    description: 温度急変 容量変化率規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの温度急変試験における容量変化率規格を抽出"
+    
+  - id: TemperatureSuddenChange_Cycle
+    description: 温度急変 サイクル数
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの温度急変試験におけるサイクル数を抽出"
+    
+  - id: HighTemperatureHighHumidity_Appearance_Spec
+    description: 高温高湿(定常) 外観規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの高温高湿(定常)試験における外観規格を抽出"
+    
+  - id: HighTemperatureHighHumidity_CapChange_Spec
+    description: 高温高湿(定常) 容量変化率規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの高温高湿(定常)試験における容量変化率規格を抽出"
+    
+  - id: HighTemperatureHighHumidity_DF_Spec
+    description: 高温高湿(定常) 誘電正接規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの高温高湿(定常)試験における誘電正接規格を抽出"
+    
+  - id: HighTemperatureHighHumidity_IR_Spec
+    description: 高温高湿(定常) 絶縁抵抗規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの高温高湿(定常)試験における絶縁抵抗規格を抽出"
+    
+  - id: HighTemperatureHighHumidity_TestTemp
+    description: 高温高湿(定常) 試験温度
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの高温高湿(定常)試験における試験温度を抽出"
+    
+  - id: HighTemperatureHighHumidity_TestHumidity
+    description: 高温高湿(定常) 試験湿度
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの高温高湿(定常)試験における試験湿度を抽出"
+    
+  - id: HighTemperatureHighHumidity_TestTime
+    description: 高温高湿(定常) 試験時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの高温高湿(定常)試験における試験時間を抽出"
+    
+  - id: Durability_Appearance_Spec
+    description: 耐久性 外観規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの耐久性試験における外観規格を抽出"
+    
+  - id: Durability_CapChange_Spec
+    description: 耐久性 容量変化率規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの耐久性試験における容量変化率規格を抽出"
+    
+  - id: Durability_DF_Spec
+    description: 耐久性 誘電正接規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの耐久性試験における誘電正接規格を抽出"
+    
+  - id: Durability_IR_Spec
+    description: 耐久性 絶縁抵抗規格
+    category: test_specs
+    extraction_hint: "Page 2-4 - Specifications セクションの耐久性試験における絶縁抵抗規格を抽出"
+    
+  - id: Durability_TestTemperature
+    description: 耐久性 試験温度
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの耐久性試験における試験温度を抽出"
+    
+  - id: Durability_AppliedVoltage
+    description: 耐久性 印加電圧
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの耐久性試験における印加電圧を抽出"
+    
+  - id: Durability_TestTime
+    description: 耐久性 試験時間
+    category: test_specs
+    extraction_hint: "Page 2-4 - Test Methods セクションの耐久性試験における試験時間を抽出"
