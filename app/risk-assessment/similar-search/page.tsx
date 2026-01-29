@@ -1,14 +1,16 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CrossReferenceTableView } from "../_components/cross-reference-table-view";
 import type {
   CandidateDetailedInfo,
 } from "../_lib/types";
-import { searchSimilarProducts } from "../_lib/api";
+import { searchSimilarProducts, extractDatasheetId, fetchDatasheetParameters } from "../_lib/api";
+import type { DatasheetData } from "@/app/_lib/datasheet/types";
+import { calculateSimilarity } from "../_lib/similarity";
 
 function SimilarSearchContent() {
   const searchParams = useSearchParams();
@@ -32,6 +34,102 @@ function SimilarSearchContent() {
       revalidateOnReconnect: false,
     }
   );
+
+  // データシートパラメーターの取得
+  const [datasheetData, setDatasheetData] = useState<Record<string, DatasheetData>>({});
+  const [isLoadingDatasheet, setIsLoadingDatasheet] = useState(false);
+
+  useEffect(() => {
+    if (!searchResult) {
+      return;
+    }
+
+    // 全候補からdatasheet_idを抽出
+    const datasheetIds: string[] = [];
+    
+    // 対象部品のdatasheet_id
+    if (searchResult.targetProduct?.datasheetUrl) {
+      const id = extractDatasheetId(searchResult.targetProduct.datasheetUrl);
+      if (id) {
+        datasheetIds.push(id);
+      }
+    }
+
+    // 候補のdatasheet_id
+    for (const candidate of searchResult.candidates) {
+      if (candidate.datasheetUrl) {
+        const id = extractDatasheetId(candidate.datasheetUrl);
+        if (id && !datasheetIds.includes(id)) {
+          datasheetIds.push(id);
+        }
+      }
+    }
+
+    if (datasheetIds.length === 0) {
+      return;
+    }
+
+    // データシートデータを取得
+    setIsLoadingDatasheet(true);
+    fetchDatasheetParameters(datasheetIds)
+      .then((data) => {
+        setDatasheetData(data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch datasheet parameters:", error);
+      })
+      .finally(() => {
+        setIsLoadingDatasheet(false);
+      });
+  }, [searchResult]);
+
+  // データシートパラメーターをマージした候補データ
+  const enrichedCandidates = useMemo(() => {
+    if (!searchResult) {
+      return [];
+    }
+
+    const targetProduct = searchResult.targetProduct;
+
+    return searchResult.candidates.map((candidate) => {
+      const enriched: CandidateDetailedInfo = { ...candidate };
+      
+      // datasheet_idを抽出してデータをマージ
+      if (candidate.datasheetUrl) {
+        const datasheetId = extractDatasheetId(candidate.datasheetUrl);
+        if (datasheetId && datasheetData[datasheetId]) {
+          enriched.datasheetParameters = datasheetData[datasheetId].parameters;
+        }
+      }
+
+      // 類似度スコアを計算（対象部品が存在する場合）
+      if (targetProduct) {
+        const similarityResult = calculateSimilarity(targetProduct, enriched);
+        enriched.similarityScore = similarityResult.totalScore;
+        enriched.similarityBreakdown = similarityResult.breakdown;
+      }
+
+      return enriched;
+    });
+  }, [searchResult, datasheetData]);
+
+  // データシートパラメーターをマージした対象部品データ
+  const enrichedTargetProduct = useMemo(() => {
+    if (!searchResult?.targetProduct) {
+      return undefined;
+    }
+
+    const enriched: CandidateDetailedInfo = { ...searchResult.targetProduct };
+    
+    if (searchResult.targetProduct.datasheetUrl) {
+      const datasheetId = extractDatasheetId(searchResult.targetProduct.datasheetUrl);
+      if (datasheetId && datasheetData[datasheetId]) {
+        enriched.datasheetParameters = datasheetData[datasheetId].parameters;
+      }
+    }
+
+    return enriched;
+  }, [searchResult?.targetProduct, datasheetData]);
 
   if (!mpn) {
     return (
@@ -72,8 +170,9 @@ function SimilarSearchContent() {
                 {searchResult.candidates.length > 0 ? (
                   <div className="h-[600px]">
                     <CrossReferenceTableView
-                      candidates={searchResult.candidates as CandidateDetailedInfo[]}
-                      targetProduct={searchResult.targetProduct}
+                      candidates={enrichedCandidates}
+                      targetProduct={enrichedTargetProduct}
+                      isLoadingDatasheet={isLoadingDatasheet}
                     />
                   </div>
                 ) : (
