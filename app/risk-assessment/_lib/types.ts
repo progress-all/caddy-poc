@@ -206,6 +206,23 @@ export interface CandidateDetailedInfo extends CandidateInfo {
     value: string;     // ValueText
     parameterId?: number;
   }>;
+  
+  // データシートパラメーター（PDFから抽出した詳細パラメーター）
+  datasheetParameters?: Record<string, { description: string; value: string | null }>;
+  
+  /** 類似度スコア (0-100) */
+  similarityScore?: number;
+  
+  /** スコア内訳（デバッグ・将来の詳細表示用） */
+  similarityBreakdown?: {
+    parameterId: string;
+    displayName: string;
+    score: number;
+    matched: boolean;
+    targetValue: string | null;
+    candidateValue: string | null;
+    status: "compared" | "target_only" | "candidate_only" | "both_missing";
+  }[];
 }
 
 /**
@@ -226,8 +243,8 @@ export interface SimilarSearchResponse {
   targetMpn: string;
   /** 対象部品の詳細情報 */
   targetProduct?: CandidateDetailedInfo;
-  /** 候補リスト */
-  candidates: CandidateInfo[];
+  /** 候補リスト（詳細情報を含む） */
+  candidates: CandidateDetailedInfo[];
   /** 検索実行時刻 */
   searchedAt: string;
   /** 各ソースの取得結果サマリ */

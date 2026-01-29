@@ -1,0 +1,258 @@
+{
+  "datasheet_id": "GRM188R61A105KA61-01",
+  "version": "1.0",
+  "parameters": {
+    "L_Dimensions": {
+      "description": "長さ (L寸法)",
+      "value": "1.6 ± 0.1 mm"
+    },
+    "W_Dimensions": {
+      "description": "幅 (W寸法)",
+      "value": "0.8 ± 0.1 mm"
+    },
+    "T_Dimensions": {
+      "description": "厚さ (T寸法)",
+      "value": "0.8 ± 0.1 mm"
+    },
+    "e_Dimensions": {
+      "description": "電極寸法 (e)",
+      "value": "0.5 mm min."
+    },
+    "g_Dimensions": {
+      "description": "電極間隔 (g)",
+      "value": "0.2 to 0.5 mm"
+    },
+    "TemperatureCharacteristics_PublicSTD": {
+      "description": "温度特性 (公的規格コード)",
+      "value": "X5R (EIA)"
+    },
+    "TemperatureCharacteristics_CapChange": {
+      "description": "温度特性 (容量変化率)",
+      "value": "-15 to 15 %"
+    },
+    "TemperatureCharacteristics_TempRange": {
+      "description": "温度特性 (温度範囲)",
+      "value": "-55 to 85 °C"
+    },
+    "RatedVoltage": {
+      "description": "定格電圧",
+      "value": "DC 10 V"
+    },
+    "NominalCapacitance": {
+      "description": "公称静電容量",
+      "value": "1 uF"
+    },
+    "CapacitanceTolerance": {
+      "description": "静電容量許容差",
+      "value": "± 10 %"
+    },
+    "Packaging_180mmReel": {
+      "description": "梱包 (180mmリール)",
+      "value": "PAPER W8P4 / 4000 pcs./Reel"
+    },
+    "Packaging_330mmReel": {
+      "description": "梱包 (330mmリール)",
+      "value": "PAPER W8P4 / 10000 pcs./Reel"
+    },
+    "RatedVoltage_Spec": {
+      "description": "定格電圧 規格",
+      "value": "Shown in Rated value. (Maximum voltage which may be applied continuously)"
+    },
+    "Appearance_Spec": {
+      "description": "外観 規格",
+      "value": "No defects or abnormalities."
+    },
+    "Dimension_Spec": {
+      "description": "寸法 規格",
+      "value": "Within the specified dimensions."
+    },
+    "VoltageProof_Spec": {
+      "description": "耐電圧 規格",
+      "value": "No defects or abnormalities."
+    },
+    "VoltageProof_TestVoltage": {
+      "description": "耐電圧 試験電圧",
+      "value": "250% of the rated voltage (High dielectric constant type)"
+    },
+    "VoltageProof_AppliedTime": {
+      "description": "耐電圧 印加時間",
+      "value": "1 to 5 s"
+    },
+    "InsulationResistance_Spec": {
+      "description": "絶縁抵抗 規格",
+      "value": "C > 0.047 µF: More than 500 Ω·F"
+    },
+    "InsulationResistance_ChargingTime": {
+      "description": "絶縁抵抗 充電時間",
+      "value": "2 min"
+    },
+    "Capacitance_Frequency": {
+      "description": "静電容量 測定周波数",
+      "value": "1.0 ± 0.1 kHz (C ≦ 10 μF)"
+    },
+    "Capacitance_Voltage": {
+      "description": "静電容量 測定電圧",
+      "value": "1.0 ± 0.2 Vrms (C ≦ 10 μF)"
+    },
+    "DissipationFactor_Spec": {
+      "description": "誘電正接 規格",
+      "value": "0.035 max. (W.V. 16/10Vdc)"
+    },
+    "TemperatureCharacteristics_CapChange_Spec": {
+      "description": "温度特性 容量変化率 判定規格",
+      "value": "R6: Within ± 15% (-55 °C to +85 °C)"
+    },
+    "AdhesiveStrength_AppliedForce": {
+      "description": "終端固着強度 加圧力",
+      "value": "5 N (GRM15/GRM18)"
+    },
+    "AdhesiveStrength_HoldingTime": {
+      "description": "終端固着強度 保持時間",
+      "value": "10 ± 1 s"
+    },
+    "Vibration_Appearance_Spec": {
+      "description": "耐振動性 外観規格",
+      "value": "No defects or abnormalities."
+    },
+    "Vibration_Capacitance_Spec": {
+      "description": "耐振動性 静電容量規格",
+      "value": "Within the specified initial value."
+    },
+    "Vibration_DF_Spec": {
+      "description": "耐振動性 誘電正接規格",
+      "value": "Within the specified initial value."
+    },
+    "Vibration_TotalAmplitude": {
+      "description": "耐振動性 全振幅",
+      "value": "1.5 mm"
+    },
+    "Vibration_Time": {
+      "description": "耐振動性 試験時間",
+      "value": "2 h in each 3 directions (total 6 h)"
+    },
+    "SubstrateBendingTest_Appearance_Spec": {
+      "description": "基板曲げテスト 外観規格",
+      "value": "No defects or abnormalities."
+    },
+    "SubstrateBendingTest_CapChange_Spec": {
+      "description": "基板曲げテスト 容量変化率規格",
+      "value": "Within ± 10%"
+    },
+    "SubstrateBendingTest_Flexure": {
+      "description": "基板曲げテスト たわみ量",
+      "value": "1 mm"
+    },
+    "SubstrateBendingTest_HoldingTime": {
+      "description": "基板曲げテスト 保持時間",
+      "value": "5 ± 1 s"
+    },
+    "Solderability_Spec": {
+      "description": "はんだ付け性 判定規格",
+      "value": "95% of the terminations is to be soldered evenly and continuously."
+    },
+    "Solderability_SolderTemp": {
+      "description": "はんだ付け性 はんだ温度",
+      "value": "245 ± 5 °C"
+    },
+    "Solderability_ImmersionTime": {
+      "description": "はんだ付け性 浸漬時間",
+      "value": "2 ± 0.5 s"
+    },
+    "ResistanceToSolderingHeat_Appearance_Spec": {
+      "description": "はんだ耐熱 外観規格",
+      "value": "No defects or abnormalities."
+    },
+    "ResistanceToSolderingHeat_CapChange_Spec": {
+      "description": "はんだ耐熱 容量変化率規格",
+      "value": "Within ± 7.5%"
+    },
+    "ResistanceToSolderingHeat_DF_Spec": {
+      "description": "はんだ耐熱 誘電正接規格",
+      "value": "Within the specified initial value."
+    },
+    "ResistanceToSolderingHeat_IR_Spec": {
+      "description": "はんだ耐熱 絶縁抵抗規格",
+      "value": "Within the specified initial value."
+    },
+    "ResistanceToSolderingHeat_VoltageProof_Spec": {
+      "description": "はんだ耐熱 耐電圧規格",
+      "value": "No defects."
+    },
+    "ResistanceToSolderingHeat_SolderTemp": {
+      "description": "はんだ耐熱 はんだ温度",
+      "value": "270 ± 5 °C"
+    },
+    "ResistanceToSolderingHeat_ImmersionTime": {
+      "description": "はんだ耐熱 浸漬時間",
+      "value": "10 ± 0.5 s"
+    },
+    "TemperatureSuddenChange_Appearance_Spec": {
+      "description": "温度急変 外観規格",
+      "value": "No defects or abnormalities."
+    },
+    "TemperatureSuddenChange_CapChange_Spec": {
+      "description": "温度急変 容量変化率規格",
+      "value": "Within ± 7.5%"
+    },
+    "TemperatureSuddenChange_Cycle": {
+      "description": "温度急変 サイクル数",
+      "value": "5 cycles"
+    },
+    "HighTemperatureHighHumidity_Appearance_Spec": {
+      "description": "高温高湿(定常) 外観規格",
+      "value": "No defects or abnormalities."
+    },
+    "HighTemperatureHighHumidity_CapChange_Spec": {
+      "description": "高温高湿(定常) 容量変化率規格",
+      "value": "Within ± 12.5%"
+    },
+    "HighTemperatureHighHumidity_DF_Spec": {
+      "description": "高温高湿(定常) 誘電正接規格",
+      "value": "W.V. 16/10Vdc: 0.05 max."
+    },
+    "HighTemperatureHighHumidity_IR_Spec": {
+      "description": "高温高湿(定常) 絶縁抵抗規格",
+      "value": "More than 500 MΩ or 25 Ω·F (Whichever is smaller)"
+    },
+    "HighTemperatureHighHumidity_TestTemp": {
+      "description": "高温高湿(定常) 試験温度",
+      "value": "40 ± 2 °C"
+    },
+    "HighTemperatureHighHumidity_TestHumidity": {
+      "description": "高温高湿(定常) 試験湿度",
+      "value": "90%RH to 95%RH"
+    },
+    "HighTemperatureHighHumidity_TestTime": {
+      "description": "高温高湿(定常) 試験時間",
+      "value": "500 ± 12 h"
+    },
+    "Durability_Appearance_Spec": {
+      "description": "耐久性 外観規格",
+      "value": "No defects or abnormalities."
+    },
+    "Durability_CapChange_Spec": {
+      "description": "耐久性 容量変化率規格",
+      "value": "Within ± 12.5%"
+    },
+    "Durability_DF_Spec": {
+      "description": "耐久性 誘電正接規格",
+      "value": "W.V. 16/10Vdc: 0.05 max."
+    },
+    "Durability_IR_Spec": {
+      "description": "耐久性 絶縁抵抗規格",
+      "value": "More than 1,000 MΩ or 50 Ω·F (Whichever is smaller)"
+    },
+    "Durability_TestTemperature": {
+      "description": "耐久性 試験温度",
+      "value": "Max. Operating Temp. ± 3 °C"
+    },
+    "Durability_AppliedVoltage": {
+      "description": "耐久性 印加電圧",
+      "value": "200% of the rated voltage"
+    },
+    "Durability_TestTime": {
+      "description": "耐久性 試験時間",
+      "value": "1000 ± 12 h"
+    }
+  }
+}
