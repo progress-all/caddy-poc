@@ -39,8 +39,11 @@ export function SimilarityScoreModal({
     const bothMissing = breakdown.filter(
       (item) => item.status === "both_missing"
     ).length;
+    const excluded = breakdown.filter(
+      (item) => item.status === "excluded"
+    ).length;
 
-    return { compared, notComparable, bothMissing };
+    return { compared, notComparable, bothMissing, excluded };
   }, [breakdown]);
 
   // スコアに応じた色を決定
@@ -59,8 +62,15 @@ export function SimilarityScoreModal({
   const getResultBadge = (
     status: string,
     matched: boolean,
-    score: number
+    score: number,
+    excludeReason?: string
   ) => {
+    if (status === "excluded") {
+      return {
+        variant: "outline" as const,
+        text: excludeReason ? `対象外（${excludeReason}）` : "対象外",
+      };
+    }
     if (status === "both_missing") {
       return {
         variant: "outline" as const,
@@ -96,7 +106,8 @@ export function SimilarityScoreModal({
           <DialogTitle>類似度スコア内訳</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-6">
+        {/* 固定領域: 製品情報とスコア */}
+        <div className="space-y-4 flex-shrink-0 pb-4">
           {/* 製品情報ヘッダー */}
           <div className="space-y-2">
             <div className="flex items-center gap-4">
@@ -152,97 +163,106 @@ export function SimilarityScoreModal({
               <span>
                 データなし: <span className="font-medium">{summary.bothMissing}</span>
               </span>
+              <span>
+                対象外: <span className="font-medium">{summary.excluded}</span>
+              </span>
             </div>
           </div>
-
-          {/* パラメータ比較テーブル */}
-          {breakdown.length > 0 ? (
-            <div className="space-y-2">
-              <div className="text-sm font-medium">パラメータ比較</div>
-              <div className="border rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Parameter
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Target
-                        </th>
-                        <th className="px-4 py-2 text-left font-medium">
-                          Candidate
-                        </th>
-                        <th className="px-4 py-2 text-center font-medium w-48">
-                          Result
-                        </th>
-                        <th className="px-4 py-2 text-center font-medium w-24">
-                          Score
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {breakdown.map((item, index) => {
-                        // parameterIdから元のパラメータ名を抽出
-                        const paramName = item.parameterId.includes(":")
-                          ? item.parameterId.split(":")[1]
-                          : item.parameterId;
-                        const resultBadge = getResultBadge(
-                          item.status,
-                          item.matched,
-                          item.score
-                        );
-                        return (
-                          <tr
-                            key={item.parameterId}
-                            className={`border-t ${
-                              index % 2 === 0 ? "bg-background" : "bg-muted/10"
-                            }`}
-                          >
-                            <td className="px-4 py-2 font-medium">
-                              {paramName}
-                            </td>
-                            <td className="px-4 py-2">
-                              {item.targetValue ?? "-"}
-                            </td>
-                            <td className="px-4 py-2">
-                              {item.candidateValue ?? "-"}
-                            </td>
-                            <td className="px-4 py-2 text-center">
-                              <Badge
-                                variant={resultBadge.variant}
-                                className="text-xs"
-                              >
-                                {resultBadge.text}
-                              </Badge>
-                            </td>
-                            <td className="px-4 py-2 text-center">
-                              {item.status === "compared" ? (
-                                <span
-                                  className={`font-medium ${getScoreColor(
-                                    item.score
-                                  )}`}
-                                >
-                                  {item.score}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>スコア内訳データがありません</p>
-            </div>
-          )}
         </div>
+
+        {/* スクロール領域: テーブル */}
+        {breakdown.length > 0 ? (
+          <div className="flex-1 overflow-auto border rounded-lg min-h-0">
+            <div className="text-sm font-medium px-4 py-2 border-b bg-muted/30">
+              パラメータ比較
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium bg-muted/50">
+                      Parameter
+                    </th>
+                    <th className="px-4 py-2 text-left font-medium bg-muted/50">
+                      Target
+                    </th>
+                    <th className="px-4 py-2 text-left font-medium bg-muted/50">
+                      Candidate
+                    </th>
+                    <th className="px-4 py-2 text-center font-medium w-48 bg-muted/50">
+                      Result
+                    </th>
+                    <th className="px-4 py-2 text-center font-medium w-24 bg-muted/50">
+                      Score
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {breakdown.map((item, index) => {
+                    // parameterIdから元のパラメータIDを抽出
+                    const paramId = item.parameterId.includes(":")
+                      ? item.parameterId.split(":")[1]
+                      : item.parameterId;
+                    const resultBadge = getResultBadge(
+                      item.status,
+                      item.matched,
+                      item.score,
+                      item.excludeReason
+                    );
+                    return (
+                      <tr
+                        key={item.parameterId}
+                        className={`border-t ${
+                          index % 2 === 0 ? "bg-background" : "bg-muted/10"
+                        }`}
+                      >
+                        <td className="px-4 py-2">
+                          <div className="space-y-0.5">
+                            <div className="font-medium">{paramId}</div>
+                            <div className="text-xs text-muted-foreground font-normal leading-tight">
+                              {item.displayName}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2">
+                          {item.targetValue ?? "-"}
+                        </td>
+                        <td className="px-4 py-2">
+                          {item.candidateValue ?? "-"}
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <Badge
+                            variant={resultBadge.variant}
+                            className="text-xs"
+                          >
+                            {resultBadge.text}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          {item.status === "compared" ? (
+                            <span
+                              className={`font-medium ${getScoreColor(
+                                item.score
+                              )}`}
+                            >
+                              {item.score}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <p>スコア内訳データがありません</p>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

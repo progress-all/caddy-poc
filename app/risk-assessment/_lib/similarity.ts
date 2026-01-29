@@ -40,7 +40,9 @@ export interface ParameterScore {
   /** 候補値 */
   candidateValue: string | null;
   /** 比較状態 */
-  status: "compared" | "target_only" | "candidate_only" | "both_missing";
+  status: "compared" | "target_only" | "candidate_only" | "both_missing" | "excluded";
+  /** 対象外とする理由（status === "excluded" の場合） */
+  excludeReason?: string;
 }
 
 /**
@@ -317,6 +319,21 @@ export function calculateSimilarity(
     } else {
       targetValue = targetDatasheetMap.get(paramConfig.id) ?? null;
       candidateValue = candidateDatasheetMap.get(paramConfig.id) ?? null;
+    }
+
+    // 対象外パラメータの場合
+    if (paramConfig.excluded) {
+      breakdown.push({
+        parameterId: `${paramConfig.source}:${paramConfig.id}`,
+        displayName: paramConfig.displayName,
+        score: 0,
+        matched: false,
+        targetValue,
+        candidateValue,
+        status: "excluded",
+        excludeReason: paramConfig.excludeReason,
+      });
+      continue; // スコア計算には含めない
     }
 
     // 値の有無を判定

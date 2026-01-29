@@ -221,7 +221,8 @@ export interface CandidateDetailedInfo extends CandidateInfo {
     matched: boolean;
     targetValue: string | null;
     candidateValue: string | null;
-    status: "compared" | "target_only" | "candidate_only" | "both_missing";
+    status: "compared" | "target_only" | "candidate_only" | "both_missing" | "excluded";
+    excludeReason?: string;
   }[];
 }
 
