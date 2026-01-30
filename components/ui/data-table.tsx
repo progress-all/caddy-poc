@@ -159,9 +159,13 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
+                  const colSpan = header.colSpan > 1 ? header.colSpan : undefined;
+                  const rowSpan = header.rowSpan > 1 ? header.rowSpan : undefined;
                   return (
                     <TableHead 
                       key={header.id} 
+                      colSpan={colSpan}
+                      rowSpan={rowSpan}
                       className={cn(
                         "whitespace-nowrap",
                         enableStickyHeader && "bg-background"

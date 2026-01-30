@@ -30,6 +30,19 @@ export function PartSearch({ onPartSelect, selectedPart }: PartSearchProps) {
     }
   }, [keywordParam]);
 
+  // URLにkeywordがある場合、自動で検索を実行（別タブから開いたときなど）
+  useEffect(() => {
+    if (!keywordParam?.trim()) return;
+
+    const keywords = manufacturer.trim()
+      ? `${keywordParam.trim()} ${manufacturer.trim()}`
+      : keywordParam.trim();
+
+    resetSearch();
+    executeSearch({ keywords, limit: 25, offset: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keywordParam変更時のみ実行
+  }, [keywordParam]);
+
   const {
     data: searchResults,
     error: searchError,
