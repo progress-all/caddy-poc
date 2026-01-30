@@ -58,6 +58,8 @@ interface DataTableProps<TData, TValue> {
   enableStickyHeader?: boolean
   /** テーブルの最大高さ（例: "calc(100vh - 300px)"）。指定時は縦スクロールが有効になる */
   maxHeight?: string
+  /** 行クリック時のコールバック。行データとインデックスを受け取る */
+  onRowClick?: (row: TData, index: number) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -76,6 +78,7 @@ export function DataTable<TData, TValue>({
   csvColumnAccessors,
   enableStickyHeader = false,
   maxHeight,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -185,15 +188,20 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
+              table.getRowModel().rows.map((row, rowIndex) => {
                 const rowClassName = getRowClassName
                   ? getRowClassName(row.original)
                   : "";
+                const isClickable = !!onRowClick;
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className={rowClassName}
+                    className={cn(
+                      rowClassName,
+                      isClickable && "cursor-pointer hover:bg-muted/50"
+                    )}
+                    onClick={isClickable ? () => onRowClick(row.original, rowIndex) : undefined}
                   >
                     {row.getVisibleCells().map((cell) => {
                       return (
