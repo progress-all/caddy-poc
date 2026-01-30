@@ -3,97 +3,37 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { BOMRowWithRisk } from "./_lib/types";
-import { cn } from "@/app/_lib/utils";
+import { RiskCell } from "./_components/risk-cell";
 
-// リスクレベルの表示設定
-const riskLevelConfig: Record<
-  BOMRowWithRisk["リスク"],
-  { label: string; className: string }
-> = {
-  High: {
-    label: "High",
-    className: "bg-red-500 text-white border-red-600",
-  },
-  Medium: {
-    label: "Medium",
-    className: "bg-yellow-500 text-white border-yellow-600",
-  },
-  Low: {
-    label: "Low",
-    className: "bg-green-500 text-white border-green-600",
-  },
-  取得中: {
-    label: "取得中",
-    className: "bg-gray-400 text-white border-gray-500",
-  },
-  取得失敗: {
-    label: "取得失敗",
-    className: "bg-gray-600 text-white border-gray-700",
-  },
-};
 
-// ライフサイクルステータスの表示設定
-const lifecycleStatusConfig: Record<
-  BOMRowWithRisk["lifecycleStatus"],
-  { label: string; className: string }
-> = {
-  Active: {
-    label: "Active",
-    className: "bg-green-500 text-white border-green-600",
-  },
-  NRND: {
-    label: "NRND",
-    className: "bg-yellow-500 text-white border-yellow-600",
-  },
-  Obsolete: {
-    label: "Obsolete",
-    className: "bg-red-500 text-white border-red-600",
-  },
-  EOL: {
-    label: "EOL",
-    className: "bg-red-500 text-white border-red-600",
-  },
-  Unknown: {
-    label: "Unknown",
-    className: "bg-gray-500 text-white border-gray-600",
-  },
-  "N/A": {
-    label: "N/A",
-    className: "bg-gray-500 text-white border-gray-600",
-  },
-};
-
-// 規制ステータスの表示設定
-const complianceStatusConfig: Record<
-  BOMRowWithRisk["rohsStatus"] | BOMRowWithRisk["reachStatus"],
-  { label: string; className: string }
-> = {
-  Compliant: {
-    label: "Compliant",
-    className: "bg-green-500 text-white border-green-600",
-  },
-  NonCompliant: {
-    label: "Non-Compliant",
-    className: "bg-red-500 text-white border-red-600",
-  },
-  Unknown: {
-    label: "Unknown",
-    className: "bg-gray-500 text-white border-gray-600",
-  },
-  "N/A": {
-    label: "N/A",
-    className: "bg-gray-500 text-white border-gray-600",
-  },
+// 代替候補有無の表示ラベル
+const substituteLabelMap: Record<BOMRowWithRisk["代替候補有無"], string> = {
+  あり: "あり",
+  なし: "なし",
+  判定中: "判定中",
+  取得失敗: "取得失敗",
 };
 
 export default function BOMPage() {
   const [bomData, setBomData] = useState<BOMRowWithRisk[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [substituteFilter, setSubstituteFilter] = useState<
+    "all" | "あり" | "なし" | "判定中" | "取得失敗"
+  >("all");
+  const [riskFilter, setRiskFilter] = useState<
+    "all" | BOMRowWithRisk["リスク"]
+  >("all");
 
   // BOMデータを内部APIから取得
   useEffect(() => {
@@ -144,14 +84,77 @@ export default function BOMPage() {
     });
   }, [bomData]);
 
-  // テーブルの列定義
+  // BOMに存在する値だけをフィルタオプションに表示
+  const availableSubstituteOptions = useMemo(() => {
+    const order: Record<BOMRowWithRisk["代替候補有無"], number> = {
+      あり: 0,
+      なし: 1,
+      判定中: 2,
+      取得失敗: 3,
+    };
+    const values = [...new Set(sortedData.map((r) => r.代替候補有無))].sort(
+      (a, b) => order[a] - order[b]
+    );
+    return [
+      { value: "all" as const, label: "すべて" },
+      ...values.map((v) => ({ value: v, label: substituteLabelMap[v] })),
+    ];
+  }, [sortedData]);
+
+  const availableRiskOptions = useMemo(() => {
+    const riskOrder: Record<BOMRowWithRisk["リスク"], number> = {
+      High: 0,
+      Medium: 1,
+      Low: 2,
+      取得中: 3,
+      取得失敗: 4,
+    };
+    const values = [...new Set(sortedData.map((r) => r.リスク))].sort(
+      (a, b) => riskOrder[a] - riskOrder[b]
+    );
+    return [
+      { value: "all" as const, label: "すべて" },
+      ...values.map((v) => ({ value: v, label: v })),
+    ];
+  }, [sortedData]);
+
+  // 選択中の値がBOMに存在しなければ「すべて」にリセット
+  useEffect(() => {
+    const subExists = availableSubstituteOptions.some((o) => o.value === substituteFilter);
+    if (!subExists) setSubstituteFilter("all");
+  }, [availableSubstituteOptions, substituteFilter]);
+  useEffect(() => {
+    const riskExists = availableRiskOptions.some((o) => o.value === riskFilter);
+    if (!riskExists) setRiskFilter("all");
+  }, [availableRiskOptions, riskFilter]);
+
+  // 代替候補有無・リスクでフィルタ（Excel風）
+  const filteredData = useMemo(() => {
+    let result = sortedData;
+    if (substituteFilter !== "all") {
+      result = result.filter((row) => row.代替候補有無 === substituteFilter);
+    }
+    if (riskFilter !== "all") {
+      result = result.filter((row) => row.リスク === riskFilter);
+    }
+    return result;
+  }, [sortedData, substituteFilter, riskFilter]);
+
+  // テーブルの列定義（リスクを起点に左配置、理由はクリックで表示）
   const columns: ColumnDef<BOMRowWithRisk>[] = [
+    {
+      accessorKey: "リスク",
+      header: "リスク",
+      cell: ({ row }) => <RiskCell row={row.original} />,
+    },
     {
       accessorKey: "部品型番",
       header: "部品型番",
       cell: ({ row }) => (
         <Link
           href={`/risk-assessment?keyword=${encodeURIComponent(row.original.部品型番)}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="font-medium text-sm text-primary hover:underline"
         >
           {row.original.部品型番}
@@ -182,54 +185,23 @@ export default function BOMPage() {
     {
       accessorKey: "rohsStatus",
       header: "RoHS",
-      cell: ({ row }) => {
-        const status = row.original.rohsStatus;
-        const config = complianceStatusConfig[status];
-        return (
-          <Badge className={cn("text-xs px-2 py-0.5", config.className)}>
-            {config.label}
-          </Badge>
-        );
-      },
+      cell: ({ row }) => (
+        <div className="text-sm">{row.original.rohsStatus}</div>
+      ),
     },
     {
       accessorKey: "reachStatus",
       header: "REACH",
-      cell: ({ row }) => {
-        const status = row.original.reachStatus;
-        const config = complianceStatusConfig[status];
-        return (
-          <Badge className={cn("text-xs px-2 py-0.5", config.className)}>
-            {config.label}
-          </Badge>
-        );
-      },
+      cell: ({ row }) => (
+        <div className="text-sm">{row.original.reachStatus}</div>
+      ),
     },
     {
       accessorKey: "lifecycleStatus",
       header: "ライフサイクル",
-      cell: ({ row }) => {
-        const status = row.original.lifecycleStatus;
-        const config = lifecycleStatusConfig[status];
-        return (
-          <Badge className={cn("text-xs px-2 py-0.5", config.className)}>
-            {config.label}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "リスク",
-      header: "リスク",
-      cell: ({ row }) => {
-        const risk = row.original.リスク;
-        const config = riskLevelConfig[risk];
-        return (
-          <Badge className={cn("text-sm px-3 py-1", config.className)}>
-            {config.label}
-          </Badge>
-        );
-      },
+      cell: ({ row }) => (
+        <div className="text-sm">{row.original.lifecycleStatus}</div>
+      ),
     },
     {
       accessorKey: "代替候補有無",
@@ -260,9 +232,59 @@ export default function BOMPage() {
 
       <Card className="flex-1 min-h-0 flex flex-col">
         <CardHeader className="flex-shrink-0">
-          <CardTitle className="text-base">
-            BOM一覧 ({sortedData.length}件)
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">
+              BOM一覧 ({filteredData.length}件)
+            </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  代替候補有無:
+                </span>
+                <Select
+                  value={substituteFilter}
+                  onValueChange={(v) =>
+                    setSubstituteFilter(
+                      v as "all" | "あり" | "なし" | "判定中" | "取得失敗"
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-[130px] h-8 text-xs">
+                    <SelectValue placeholder="すべて" />
+                  </SelectTrigger>
+                <SelectContent>
+                  {availableSubstituteOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  リスク:
+                </span>
+                <Select
+                  value={riskFilter}
+                  onValueChange={(v) =>
+                    setRiskFilter(v as "all" | BOMRowWithRisk["リスク"])
+                  }
+                >
+                  <SelectTrigger className="w-[110px] h-8 text-xs">
+                    <SelectValue placeholder="すべて" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRiskOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 overflow-hidden">
           {isLoading ? (
@@ -278,7 +300,7 @@ export default function BOMPage() {
             <div className="h-full min-h-[500px]">
               <DataTable
                 columns={columns}
-                data={sortedData}
+                data={filteredData}
                 searchKey="部品型番"
                 enableSorting={true}
                 enableFiltering={true}
