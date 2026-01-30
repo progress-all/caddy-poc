@@ -60,7 +60,6 @@ export function CrossReferenceTableView({
       tableData,
       !!targetProduct,
       isLoadingDatasheet,
-      handleScoreClick,
       targetSubstitutionCount
     );
   }, [tableData, targetProduct, isLoadingDatasheet, targetSubstitutionCount]);
@@ -229,6 +228,15 @@ export function CrossReferenceTableView({
     return configs;
   }, [tableData, targetProduct, targetSubstitutionCount]);
 
+  // 行クリックハンドラ（対象部品行以外でモーダルを表示）
+  const handleRowClick = (row: CandidateDetailedInfo, index: number) => {
+    // 対象部品が存在する場合、最初の行（index === 0）はTarget行なのでスキップ
+    if (targetProduct && index === 0) {
+      return;
+    }
+    handleScoreClick(row);
+  };
+
   return (
     <div className="w-full h-full min-h-0 flex flex-col">
       <DataTable
@@ -245,6 +253,7 @@ export function CrossReferenceTableView({
         csvColumnAccessors={csvColumnAccessors}
         enableStickyHeader={true}
         maxHeight="calc(100vh - 300px)"
+        onRowClick={handleRowClick}
       />
       {/* スコア内訳モーダル */}
       {targetProduct && selectedCandidate && (
@@ -331,7 +340,6 @@ function generateColumns(
   candidates: CandidateDetailedInfo[],
   hasTargetProduct: boolean,
   isLoadingDatasheet: boolean,
-  onScoreClick?: (candidate: CandidateDetailedInfo) => void,
   targetSubstitutionCount?: number
 ): ColumnDef<CandidateDetailedInfo>[] {
   // パラメータ列の順序: 基準行（先頭＝Target）のJSON出現順を保持し、他行のみのパラメータは初出順で末尾に追加
@@ -434,11 +442,7 @@ function generateColumns(
         };
 
         return (
-          <button
-            onClick={() => onScoreClick?.(row.original)}
-            className="flex items-center gap-2 min-w-[100px] cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors w-full text-left"
-            type="button"
-          >
+          <div className="flex items-center gap-2 min-w-[100px] w-full">
             <span className={`text-sm font-medium ${getScoreColor(score)}`}>
               {score}
             </span>
@@ -453,7 +457,7 @@ function generateColumns(
                 style={{ width: `${score}%` }}
               />
             </div>
-          </button>
+          </div>
         );
       },
     },
@@ -470,7 +474,7 @@ function generateColumns(
         }
         const summary = row.original.similaritySummary;
         return summary ? (
-          <span className="text-xs text-muted-foreground line-clamp-2">{summary}</span>
+          <span className="text-xs text-muted-foreground line-clamp-3 whitespace-normal break-words max-w-[400px] block">{summary}</span>
         ) : (
           <span className="text-muted-foreground">-</span>
         );
