@@ -147,7 +147,7 @@ export function CrossReferenceTableView({
         },
       },
       {
-        header: "Summary (LLM)",
+        header: "Summary (Datasheet)",
         accessor: (row) => {
           if (
             targetProduct &&
@@ -528,7 +528,7 @@ function generateColumns(
     {
       accessorKey: "similaritySummary",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Summary" />
+        <DataTableColumnHeader column={column} title="Summary (Datasheet)" />
       ),
       cell: ({ row, table }) => {
         // 対象部品の場合は表示しない
