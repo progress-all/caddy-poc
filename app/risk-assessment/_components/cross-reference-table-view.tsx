@@ -546,7 +546,7 @@ function generateColumns(
         }
         const summary = row.original.similaritySummary;
         return summary ? (
-          <span className="text-xs text-muted-foreground line-clamp-3 whitespace-normal break-words max-w-[400px] block">{summary}</span>
+          <span className="text-xs text-muted-foreground line-clamp-3 whitespace-pre-line break-words max-w-[400px] block">{summary}</span>
         ) : (
           <span className="text-muted-foreground">-</span>
         );

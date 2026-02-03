@@ -9,6 +9,7 @@ import type {
   CandidateDetailedInfo,
 } from "../_lib/types";
 import { searchSimilarProducts, extractDatasheetId, fetchDatasheetParameters, fetchSimilarityResultsDigiKey, fetchSimilarityResults, fetchUnifiedProducts } from "../_lib/api";
+import { formatSimilaritySummaryDiff } from "../_lib/format-similarity-summary";
 import type { DatasheetData, UnifiedProduct } from "@/app/_lib/datasheet/types";
 import type { SimilarityResult } from "@/app/_lib/datasheet/similarity-schema";
 
@@ -253,7 +254,12 @@ function SimilarSearchContent() {
               llmResultCombined.parameters.length
           );
           enriched.similarityScore = totalScore;
-          enriched.similaritySummary = llmResultCombined.summary;
+          // サマリは DigiKey + データシートの parameters をマージして生成（厚さなど DigiKey のみの差分も含める）
+          const paramsForSummary =
+            llmResultDigiKey && llmResultDigiKey.parameters.length > 0
+              ? [...llmResultDigiKey.parameters, ...llmResultCombined.parameters]
+              : llmResultCombined.parameters;
+          enriched.similaritySummary = formatSimilaritySummaryDiff(paramsForSummary);
           enriched.similarityBreakdown = llmResultCombined.parameters.map((param) => ({
             parameterId: param.parameterId,
             displayName: param.description,
