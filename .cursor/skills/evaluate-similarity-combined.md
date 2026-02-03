@@ -117,7 +117,7 @@ evaluate-similarity の評価プロンプト全文を流用する。上記「入
 - スコア基準: 100=完全等価, 80-99=上位互換, 50-79=条件付き代替可, 1-49=代替困難, 0=比較不能
 - 表記揺れ: uF=µF, ± 10 %=±10% などは 100 点
 - reason: 具体的な差分または同値の根拠を端的に。禁止:「要確認」「部分一致」「表記差あり」
-- summary: 1-2文で具体的に。全パラメータ80以上なら「主要特性は同等」
+- summary: evaluate-similarity の新形式（・で始まる箇条書き・差分のみ・見出しなし）に準拠
 
 #### 出力形式（LLMへの指示）
 
@@ -125,7 +125,7 @@ evaluate-similarity の評価プロンプト全文を流用する。上記「入
 以下のJSON形式で出力してください。他のテキストは含めないでください。
 
 {
-  "summary": "比較結果の要約（1-2文）",
+  "summary": "差分のみの箇条書き（各行は・で始め、複数行は改行\\nで連結）",
   "parameters": [
     {
       "parameterId": "digikey:Capacitance または datasheet:NominalCapacitance など（入力と同じID）",
@@ -165,7 +165,7 @@ LLMからのレスポンスを `JSON.parse()` でパースし、`app/_lib/datash
   "targetId": "GRM185R60J105KE26D",
   "candidateId": "GRM188R60J105KA01D",
   "evaluatedAt": "2026-02-02T12:00:00.000Z",
-  "summary": "主要特性は同等",
+  "summary": "・差分なし（比較可能な範囲では全項目一致）",
   "parameters": [
     {
       "parameterId": "digikey:Capacitance",
