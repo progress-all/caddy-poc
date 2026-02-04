@@ -92,24 +92,38 @@ function BreakdownTable({
   }
   const hasReason = showReason || breakdown.some((item) => item.reason);
   return (
-    <div className="border rounded-lg">
-      <div className="text-sm font-medium px-4 py-2 border-b bg-muted/30 sticky top-0 z-10 bg-muted/30">
-        {sectionTitle}
+    <div className="border rounded-lg overflow-hidden">
+      <div className="sticky top-0 z-20 shrink-0 bg-muted">
+        <div className="text-sm font-medium px-4 py-2 border-b bg-muted">
+          {sectionTitle}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted">
+              <tr>
+                <th className="px-4 py-2 text-left font-medium bg-muted">Parameter</th>
+                <th className="px-4 py-2 text-left font-medium bg-muted">Target</th>
+                <th className="px-4 py-2 text-left font-medium bg-muted">Candidate</th>
+                <th className="px-4 py-2 text-center font-medium w-48 bg-muted">Result</th>
+                <th className="px-4 py-2 text-center font-medium w-24 bg-muted">Score</th>
+                {hasReason && (
+                  <th className="px-4 py-2 text-left font-medium bg-muted">Reason (LLM)</th>
+                )}
+              </tr>
+            </thead>
+          </table>
+        </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-auto max-h-[50vh]">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50 sticky top-0 z-10">
-            <tr>
-              <th className="px-4 py-2 text-left font-medium bg-muted/50">Parameter</th>
-              <th className="px-4 py-2 text-left font-medium bg-muted/50">Target</th>
-              <th className="px-4 py-2 text-left font-medium bg-muted/50">Candidate</th>
-              <th className="px-4 py-2 text-center font-medium w-48 bg-muted/50">Result</th>
-              <th className="px-4 py-2 text-center font-medium w-24 bg-muted/50">Score</th>
-              {hasReason && (
-                <th className="px-4 py-2 text-left font-medium bg-muted/50">Reason (LLM)</th>
-              )}
-            </tr>
-          </thead>
+          <colgroup>
+            <col />
+            <col />
+            <col />
+            <col className="w-48" />
+            <col className="w-24" />
+            {hasReason && <col className="max-w-[300px]" />}
+          </colgroup>
           <tbody>
             {breakdown.map((item, index) => {
               const paramId = item.parameterId.includes(":")
@@ -200,6 +214,19 @@ export function SimilarityScoreModal({
   const score = isDigiKeyOnly ? scoreDigiKey : scoreCombined;
   const confidence = isDigiKeyOnly ? confidenceDigiKey : confidenceCombined;
   const hasScore = score !== undefined && score !== null;
+  const comparableItems = breakdown.filter(
+    (item) => item.status === "compared" || item.isComparable !== false
+  );
+  const excludedItems = breakdown.filter(
+    (item) => item.status === "excluded" || item.isComparable === false
+  );
+  const scoreBreakdown = {
+    total: comparableItems.length,
+    high: comparableItems.filter((item) => item.score >= 80).length,
+    mid: comparableItems.filter((item) => item.score >= 50 && item.score < 80).length,
+    low: comparableItems.filter((item) => item.score < 50).length,
+    excluded: excludedItems.length,
+  };
   const sourceLabel =
     variant === "digikey"
       ? "使用した情報ソース: DigiKeyのみ"
@@ -255,12 +282,21 @@ export function SimilarityScoreModal({
               />
             </div>
           </div>
-          {confidence && (
-            <div className="text-xs text-muted-foreground mb-2 shrink-0">
-              信頼度: {confidence.comparableParams} / {confidence.totalParams} ({Math.round(confidence.confidenceRatioPercent)}%)
+          <div className="text-xs text-muted-foreground mb-2 shrink-0 space-y-2">
+            <div>
+              総数: {scoreBreakdown.total}　
+              高スコア(80以上): {scoreBreakdown.high}　
+              中スコア(50-79): {scoreBreakdown.mid}　
+              低スコア(50未満): {scoreBreakdown.low}　
+              対象外: {scoreBreakdown.excluded}
             </div>
-          )}
-          <div className="flex-1 min-h-0 min-w-0 overflow-auto">
+            {confidence && (
+              <div>
+                信頼度: {confidence.comparableParams} / {confidence.totalParams} ({Math.round(confidence.confidenceRatioPercent)}%)
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
             <BreakdownTable
               breakdown={breakdown}
               sectionTitle={sectionTitle}
