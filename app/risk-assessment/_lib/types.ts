@@ -258,7 +258,7 @@ export interface CandidateDetailedInfo extends CandidateInfo {
   /** 類似度スコア (0-100) — DigiKey+Datasheet 評価結果。比較成立 0 件の場合は未設定 */
   similarityScore?: number;
   
-  /** 信頼度（比較成立数/全パラメータ数）— DigiKey+Datasheet */
+  /** 信頼度（比較成立数/Targetのパラメータ総数）— DigiKey+Datasheet。分母は Target 固定 */
   similarityConfidence?: {
     comparableParams: number;
     totalParams: number;
@@ -283,7 +283,7 @@ export interface CandidateDetailedInfo extends CandidateInfo {
   /** DigiKeyパラメータのみの類似度スコア (0-100)。比較成立 0 件の場合は未設定 */
   similarityScoreDigiKey?: number;
 
-  /** DigiKeyパラメータのみの信頼度 */
+  /** DigiKeyパラメータのみの信頼度（分母は Target 固定） */
   similarityConfidenceDigiKey?: {
     comparableParams: number;
     totalParams: number;

@@ -109,6 +109,46 @@ export function computeConfidence(parameters: ParameterEvaluation[]): {
 }
 
 /**
+ * 信頼度を算出する（分母を Target のパラメータ総数で固定）。
+ * - targetTotalCount: 分母（Target の比較対象パラメータ総数）。全 Candidate で同一。
+ * - matchedCount: 分子（実際に比較が成立したパラメータ数）。Target/Candidate 両方に有効値があるもののみ。
+ * - confidenceRatioPercent: matchedCount / targetTotalCount * 100
+ */
+export function computeConfidenceWithFixedDenominator(
+  targetTotalCount: number,
+  parameters: ParameterEvaluation[]
+): {
+  totalParams: number;
+  comparableParams: number;
+  confidenceRatioPercent: number;
+} {
+  const comparableParams = getComparableParameters(parameters).length;
+  const confidenceRatioPercent =
+    targetTotalCount > 0 ? (comparableParams / targetTotalCount) * 100 : 0;
+  return {
+    totalParams: targetTotalCount,
+    comparableParams,
+    confidenceRatioPercent,
+  };
+}
+
+/**
+ * 複数の ParameterEvaluation 配列から、重複を除いた parameterId の集合のサイズを返す。
+ * Target の比較対象パラメータ総数（分母）の算出に使用する。
+ */
+export function getTargetTotalParamCount(
+  parametersList: ParameterEvaluation[][]
+): number {
+  const ids = new Set<string>();
+  for (const parameters of parametersList) {
+    for (const p of parameters) {
+      ids.add(p.parameterId);
+    }
+  }
+  return ids.size;
+}
+
+/**
  * 各パラメータに is_comparable を付与した配列を返す（既存JSON互換用）。
  * スキーマに is_comparable が無い場合はこの関数で付与して利用する。
  */
