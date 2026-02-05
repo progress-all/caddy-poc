@@ -329,13 +329,13 @@ function SimilarSearchContent() {
   }
 
   return (
-    <div className="h-full flex flex-col min-h-0">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* 検索結果 */}
-      <Card className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <CardHeader className="shrink-0">
+      <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <CardHeader className="shrink-0 py-2 px-4">
           <CardTitle className="text-base">類似品検索結果</CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col min-h-0 overflow-hidden pt-0">
+        <CardContent className="flex-1 flex flex-col min-h-0 overflow-hidden pt-0 px-4 pb-4">
           {/* ローディング状態 */}
           {isLoading && (
             <div className="flex items-center justify-center py-8 shrink-0">
@@ -380,15 +380,14 @@ function SimilarSearchContent() {
 
 export default function SimilarSearchPage() {
   return (
-    <div className="h-full flex flex-col min-h-0 overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       <div className="mb-4 shrink-0">
-        <h1 className="text-2xl font-bold mb-2">類似品検索</h1>
         <p className="text-sm text-muted-foreground">
           選択した部品に対して類似品を検索し、代替候補を提案します
         </p>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <Suspense
           fallback={
             <div className="flex items-center justify-center h-64">

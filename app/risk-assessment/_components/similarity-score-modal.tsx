@@ -60,7 +60,7 @@ function getResultBadge(
   }
   // status === "compared": evaluate-similarity と同じ基準で OK/部分一致/NG を判定
   if (score >= 80) return { variant: "default" as const, text: "OK" };
-  if (score >= 50) return { variant: "secondary" as const, text: "部分一致" };
+  if (score >= 50) return { variant: "warning" as const, text: "部分一致" };
   return { variant: "destructive" as const, text: "NG" };
 }
 
