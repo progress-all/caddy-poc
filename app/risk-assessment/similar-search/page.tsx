@@ -10,7 +10,7 @@ import type {
 } from "../_lib/types";
 import { searchSimilarProducts, extractDatasheetId, fetchDatasheetParameters, fetchSimilarityResultsDigiKey, fetchSimilarityResults, fetchUnifiedProducts } from "../_lib/api";
 import { formatSimilaritySummaryDiff } from "../_lib/format-similarity-summary";
-import { computeAverageScore, computeConfidence, isComparableParameter } from "@/app/_lib/datasheet/similarity-score";
+import { computeAverageScore, computeConfidenceWithFixedDenominator, getTargetTotalParamCount, isComparableParameter } from "@/app/_lib/datasheet/similarity-score";
 import type { DatasheetData, UnifiedProduct } from "@/app/_lib/datasheet/types";
 import type { SimilarityResult } from "@/app/_lib/datasheet/similarity-schema";
 
@@ -198,6 +198,34 @@ function SimilarSearchContent() {
       return [];
     }
 
+    // 信頼度の分母を Target のパラメータ総数に統一するため、全 Candidate の結果から parameterId の和集合を取得
+    const digiKeyParamArrays: SimilarityResult["parameters"][] = [];
+    const combinedParamArrays: SimilarityResult["parameters"][] = [];
+    if (enrichedTargetProduct) {
+      for (const candidate of searchResult.candidates) {
+        const candidateId =
+          candidate.manufacturerProductNumber || candidate.digiKeyProductNumber || "";
+        const llmResultDigiKey = candidateId
+          ? similarityResultsDigiKey[candidateId]
+          : undefined;
+        const llmResultCombined = candidateId
+          ? similarityResultsCombined[candidateId]
+          : undefined;
+        if (llmResultDigiKey && llmResultDigiKey.parameters.length > 0) {
+          digiKeyParamArrays.push(llmResultDigiKey.parameters);
+        }
+        if (llmResultCombined && llmResultCombined.parameters.length > 0) {
+          const paramsForSummary =
+            llmResultDigiKey && llmResultDigiKey.parameters.length > 0
+              ? [...llmResultDigiKey.parameters, ...llmResultCombined.parameters]
+              : llmResultCombined.parameters;
+          combinedParamArrays.push(paramsForSummary);
+        }
+      }
+    }
+    const targetTotalCountDigiKey = getTargetTotalParamCount(digiKeyParamArrays);
+    const targetTotalCountCombined = getTargetTotalParamCount(combinedParamArrays);
+
     return searchResult.candidates.map((candidate) => {
       const enriched: CandidateDetailedInfo = { ...candidate };
       const partId = candidate.manufacturerProductNumber || candidate.digiKeyProductNumber || "";
@@ -229,7 +257,10 @@ function SimilarSearchContent() {
           : undefined;
         if (llmResultDigiKey && llmResultDigiKey.parameters.length > 0) {
           const totalScoreDigiKey = computeAverageScore(llmResultDigiKey.parameters);
-          const confidenceDigiKey = computeConfidence(llmResultDigiKey.parameters);
+          const confidenceDigiKey = computeConfidenceWithFixedDenominator(
+            targetTotalCountDigiKey,
+            llmResultDigiKey.parameters
+          );
           enriched.similarityScoreDigiKey = totalScoreDigiKey ?? undefined;
           enriched.similarityConfidenceDigiKey = {
             comparableParams: confidenceDigiKey.comparableParams,
@@ -255,12 +286,15 @@ function SimilarSearchContent() {
           : undefined;
         if (llmResultCombined && llmResultCombined.parameters.length > 0) {
           const totalScore = computeAverageScore(llmResultCombined.parameters);
-          // 信頼度は「Similarity (DigiKey+Datasheet)」の表示内容（DigiKey + データシートのマージ）で算出
+          // 信頼度は「Similarity (DigiKey+Datasheet)」の表示内容（DigiKey + データシートのマージ）で算出。分母は Target のパラメータ総数で固定。
           const paramsForSummary =
             llmResultDigiKey && llmResultDigiKey.parameters.length > 0
               ? [...llmResultDigiKey.parameters, ...llmResultCombined.parameters]
               : llmResultCombined.parameters;
-          const confidenceCombined = computeConfidence(paramsForSummary);
+          const confidenceCombined = computeConfidenceWithFixedDenominator(
+            targetTotalCountCombined,
+            paramsForSummary
+          );
           enriched.similarityScore = totalScore ?? undefined;
           enriched.similarityConfidence = {
             comparableParams: confidenceCombined.comparableParams,
