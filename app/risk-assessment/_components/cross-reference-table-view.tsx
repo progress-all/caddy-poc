@@ -197,11 +197,11 @@ export function CrossReferenceTableView({
         },
       },
       {
-        header: "Unit Price",
+        header: "Unit Price (DigiKey)",
         accessor: (row) => (row.unitPrice ? `$${row.unitPrice}` : ""),
       },
       {
-        header: "Quantity Available",
+        header: "Quantity Available (DigiKey)",
         accessor: (row) => row.quantityAvailable.toLocaleString(),
       },
       {
@@ -253,7 +253,7 @@ export function CrossReferenceTableView({
         accessor: (row) => row.datasheetUrl || "",
       },
       {
-        header: "Lead Time",
+        header: "Lead Time (DigiKey)",
         accessor: (row) =>
           row.manufacturerLeadWeeks
             ? `${row.manufacturerLeadWeeks} weeks`
@@ -298,22 +298,23 @@ export function CrossReferenceTableView({
 
   return (
     <div className="w-full h-full min-h-0 flex flex-col">
-      <DataTable
-        columns={columns}
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden min-w-0">
+        <DataTable
+          columns={columns}
         data={tableData}
         enableSorting={true}
         enableFiltering={false}
         enablePagination={true}
         enableColumnVisibility={true}
-        pageSize={20}
+        pageSize={10}
         getRowClassName={getRowClassName}
         enableCsvExport={true}
         csvFilenamePrefix="similar-search"
         csvColumnAccessors={csvColumnAccessors}
         enableStickyHeader={true}
-        maxHeight="calc(100vh - 300px)"
         onRowClick={handleRowClick}
       />
+      </div>
       {/* 統合モーダル: Candidate行/スコアクリックで開き、DigiKey/Datasheetタブ切替 */}
       {targetProduct && selectedCandidate && (
         <SimilarityDetailModal
@@ -730,7 +731,7 @@ function generateColumns(
     {
       accessorKey: "unitPrice",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Unit Price" />
+        <DataTableColumnHeader column={column} title="Unit Price (DigiKey)" />
       ),
       cell: ({ row }) => {
         const unitPrice = row.original.unitPrice;
@@ -740,7 +741,7 @@ function generateColumns(
     {
       accessorKey: "quantityAvailable",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Quantity Available" />
+        <DataTableColumnHeader column={column} title="Quantity Available (DigiKey)" />
       ),
       cell: ({ row }) => {
         const qty = row.original.quantityAvailable;
@@ -750,7 +751,7 @@ function generateColumns(
     {
       accessorKey: "manufacturerLeadWeeks",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Lead Time" />
+        <DataTableColumnHeader column={column} title="Lead Time (DigiKey)" />
       ),
       cell: ({ row }) => {
         const leadWeeks = row.original.manufacturerLeadWeeks;

@@ -122,9 +122,9 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2 min-h-0 h-full">
       {(enableFiltering || enableColumnVisibility || enableCsvExport) && (
-        <div className="flex items-center justify-between py-1">
+        <div className="flex shrink-0 items-center justify-between py-1">
           {enableFiltering && searchKey && (
             <DataTableToolbar
               table={table}
@@ -149,7 +149,7 @@ export function DataTable<TData, TValue>({
       )}
       <div 
         className={cn(
-          "rounded-md border overflow-auto flex-1 min-h-0",
+          "rounded-md border overflow-y-auto flex-1 min-h-0 min-w-0",
           maxHeight && "overflow-y-auto"
         )}
         style={maxHeight ? { maxHeight } : undefined}
@@ -230,7 +230,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       {enablePagination && (
-        <div>
+        <div className="shrink-0">
           <DataTablePagination table={table} />
         </div>
       )}
